@@ -35,7 +35,7 @@ To generate an Xcode project for iOS:
 
 The generated build system will contain separate targets for Junction, Turf, and some sample applications.
 
-[[https://github.com/preshing/junction/docs/vs-solution.png]]
+![Solution Explorer](/docs/vs-solution.png)
 
 Alternatively, you can run CMake on a specific sample only:
 
@@ -78,7 +78,7 @@ For example, to configure Turf to use the C++11 standard library, you can set th
 
 Or, using the CMake GUI:
 
-[[https://github.com/preshing/junction/docs/cmake-gui.png]]
+![CMake GUI](/docs/cmake-gui.png)
 
 Many header files in Turf, and some in Junction, are configurable using preprocessor definitions. For example, `turf/Thread.h` will switch between `turf::Thread` implementations depending on the values of `TURF_IMPL_THREAD_PATH` and `TURF_IMPL_THREAD_TYPE`. If those macros are not defined, they will be set to default values based on information from the environment. You can set them directly by providing your own header file and passing it in the `TURF_USERCONFIG` variable when CMake runs. You can place this file anywhere; CMake will copy it to Turf's build tree right next to `include/turf_config.h`.
 
