@@ -1,0 +1,9 @@
+include(FindPackageHandleStandardArgs)
+
+find_library(FOLLY_LIBRARY folly)
+find_library(GLOG_LIBRARY glog)
+find_path(FOLLY_INCLUDE_DIR "folly/String.h")
+
+set(FOLLY_LIBRARIES ${FOLLY_LIBRARY} ${GLOG_LIBRARY})
+
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Folly REQUIRED_ARGS FOLLY_INCLUDE_DIR FOLLY_LIBRARIES)

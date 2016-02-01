@@ -1,0 +1,11 @@
+#cmakedefine01 JUNCTION_WITH_FOLLY
+#cmakedefine01 JUNCTION_WITH_CDS
+#cmakedefine01 JUNCTION_WITH_NBDS
+#cmakedefine01 JUNCTION_WITH_TBB
+#cmakedefine01 JUNCTION_WITH_TERVEL
+#cmakedefine01 NBDS_USE_TURF_HEAP
+#cmakedefine01 TBB_USE_TURF_HEAP
+#cmakedefine01 JUNCTION_TRACK_GRAMPA_STATS
+#cmakedefine01 JUNCTION_USE_STRIPING
+
+#include "junction_userconfig.h"

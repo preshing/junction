@@ -1,0 +1,4 @@
+#cmakedefine01 TEST_CHECK_MAP_CONTENTS
+
+#define TURF_IMPL_TRACE_PATH "impl/Trace_Counters.h"
+#define TURF_IMPL_TRACE_TYPE turf::Trace_Counters
