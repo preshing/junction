@@ -4,7 +4,7 @@ Junction is a library of concurrent data structures in C++. It contains three ha
     junction::ConcurrentMap_LeapFrog
     junction::ConcurrentMap_Grampa
 
-[CMake](https://cmake.org/) and [Turf](https://github.com/preshing/AcquireRelease) are required. See the blog post [New Concurrent Hash Maps for C++](http://preshing.com/20160201/new-concurrent-hash-maps-for-cpp/) for more information.
+[CMake](https://cmake.org/) and [Turf](https://github.com/preshing/turf) are required. See the blog post [New Concurrent Hash Maps for C++](http://preshing.com/20160201/new-concurrent-hash-maps-for-cpp/) for more information.
 
 ## License
 
