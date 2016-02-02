@@ -17,6 +17,7 @@ ALL_MAPS = [
     ('nbds', 'junction/extra/impl/MapAdapter_NBDS.h', ['-DJUNCTION_WITH_NBDS=1'], ['-i10000', '-c200']),
     ('tbb', 'junction/extra/impl/MapAdapter_TBB.h', ['-DJUNCTION_WITH_TBB=1'], ['-i10000', '-c200']),
     ('tervel', 'junction/extra/impl/MapAdapter_Tervel.h', ['-DJUNCTION_WITH_TERVEL=1'], ['-i1000', '-c20']),
+    ('cuckoo', 'junction/extra/impl/MapAdapter_LibCuckoo.h', ['-DJUNCTION_WITH_LIBCUCKOO=1', '-DTURF_WITH_EXCEPTIONS=1'], ['-i5000', '-c20']),
 ]
 
 # Scan arguments for path to CMakeLists.txt and args to pass through.

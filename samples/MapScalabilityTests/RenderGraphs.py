@@ -11,14 +11,15 @@ def colorTuple(h):
 
 ALL_MAPS = [
     ('folly',           colorTuple('606080')),
-    ('tervel',          colorTuple('9090b0')),
-    ('stdmap',          colorTuple('606080')),
+    ('tervel',          colorTuple('408040')),
+    ('stdmap',          colorTuple('b0b090')),
     ('nbds',            colorTuple('9090b0')),
-    ('michael',         colorTuple('606080')),
-    ('tbb',             colorTuple('9090b0')),
     ('linear',          colorTuple('ff4040')),
-    ('grampa',          colorTuple('ff4040')),
-    ('leapfrog',        colorTuple('ff4040')),
+    ('michael',         colorTuple('202020')),
+    ('tbb',             colorTuple('0090b0')),
+    ('cuckoo',          colorTuple('d040d0')),
+    ('grampa',          colorTuple('ff6040')),
+    ('leapfrog',        colorTuple('ff8040')),
 ]
 
 #---------------------------------------------------

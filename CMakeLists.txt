@@ -75,6 +75,12 @@ if(JUNCTION_WITH_TERVEL)
     list(APPEND JUNCTION_ALL_LIBRARIES ${TERVEL_LIBRARIES})
 endif()
 
+# Optional: Locate libcuckoo and append it to the list of include dirs/libraries.
+if(JUNCTION_WITH_LIBCUCKOO)
+    find_package(LibCuckoo REQUIRED)
+    list(APPEND JUNCTION_ALL_INCLUDE_DIRS ${LIBCUCKOO_INCLUDE_DIRS})
+endif()
+
 # If this is the root listfile, add all samples
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     file(GLOB children samples/*)
