@@ -15,9 +15,10 @@
 #include <turf/Util.h>
 #include <turf/extra/UniqueSequence.h>
 #include <turf/extra/JobDispatcher.h>
-#include <junction/Averager.h>
 #include <turf/extra/Options.h>
 #include <junction/extra/MapAdapter.h>
+#include <algorithm>
+#include <vector>
 
 using namespace turf::intTypes;
 typedef junction::extra::MapAdapter MapAdapter;
