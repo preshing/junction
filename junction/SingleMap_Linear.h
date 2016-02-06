@@ -39,7 +39,7 @@ private:
     static Cell* createTable(ureg size) {
         Cell* cells = (Cell*) TURF_HEAP.alloc(sizeof(Cell) * size);
         for (ureg i = 0; i < size; i++)
-            new(cells + i) Cell(KeyTraits::NullHash, Value(ValueTraits::NullValue));
+            new (cells + i) Cell(KeyTraits::NullHash, Value(ValueTraits::NullValue));
         return cells;
     }
 
@@ -97,10 +97,10 @@ public:
                 idx &= map.m_sizeMask;
                 m_cell = map.m_cells + idx;
                 if (m_cell->hash == hash)
-                    return;         // Key found in table.
+                    return; // Key found in table.
                 if (m_cell->hash != KeyTraits::NullHash)
-                    continue;       // Slot is taken by another key. Try next slot.
-                m_cell = NULL;  // Insert not allowed & key not found.
+                    continue;  // Slot is taken by another key. Try next slot.
+                m_cell = NULL; // Insert not allowed & key not found.
                 return;
             }
         }
@@ -114,13 +114,13 @@ public:
                     idx &= map.m_sizeMask;
                     m_cell = map.m_cells + idx;
                     if (m_cell->hash == hash)
-                        return;         // Key found in table.
+                        return; // Key found in table.
                     if (m_cell->hash != KeyTraits::NullHash)
-                        continue;       // Slot is taken by another key. Try next slot.
+                        continue; // Slot is taken by another key. Try next slot.
                     // Insert is allowed. Reserve this cell.
                     if (isOverpopulated(map.m_population, map.m_sizeMask)) {
                         map.migrateToNewTable((map.m_sizeMask + 1) * 2);
-                        break;          // Retry in new table.
+                        break; // Retry in new table.
                     }
                     map.m_population++;
                     m_cell->hash = hash;
@@ -131,7 +131,7 @@ public:
         }
 
         ~Iterator() {
-            TURF_ASSERT(!m_cell || m_cell->value != NULL);  // Forbid leaving a cell half-inserted.
+            TURF_ASSERT(!m_cell || m_cell->value != NULL); // Forbid leaving a cell half-inserted.
         }
 
     public:
@@ -146,7 +146,7 @@ public:
 
         Value exchangeValue(Value desired) {
             TURF_ASSERT(m_cell);
-            TURF_ASSERT(desired != NULL);  // Use eraseValue()
+            TURF_ASSERT(desired != NULL); // Use eraseValue()
             Value oldValue = m_cell->value;
             m_cell->value = desired;
             return oldValue;
@@ -154,10 +154,10 @@ public:
 
         Value erase() {
             TURF_ASSERT(m_cell);
-            TURF_ASSERT(m_cell->value != NULL);  // Forbid erasing a cell that's not actually used.
+            TURF_ASSERT(m_cell->value != NULL); // Forbid erasing a cell that's not actually used.
             Value oldValue = m_cell->value;
             // Remove this cell by shuffling neighboring cells so there are no gaps in anyone's probe chain
-            ureg cellIdx = m_cell - m_map.m_cells; 
+            ureg cellIdx = m_cell - m_map.m_cells;
             for (ureg neighborIdx = cellIdx + 1;; neighborIdx++) {
                 neighborIdx &= m_map.m_sizeMask;
                 Cell* neighbor = m_map.m_cells + neighborIdx;

@@ -16,7 +16,7 @@
 #include "TestInsertDifferentKeys.h"
 #include "TestChurn.h"
 #include <turf/extra/Options.h>
-#include <junction/details/Grampa.h>  // for GrampaStats
+#include <junction/details/Grampa.h> // for GrampaStats
 
 static const ureg IterationsPerLog = 100;
 
@@ -38,10 +38,14 @@ int main(int argc, const char** argv) {
         junction::DefaultQSBR.flush();
         junction::details::GrampaStats& stats = junction::details::GrampaStats::Instance;
         printf("---------------------------\n");
-        printf("numTables: %d/%d\n", (int) stats.numTables.current.load(turf::Relaxed), (int) stats.numTables.total.load(turf::Relaxed));
-        printf("numTableMigrations: %d/%d\n", (int) stats.numTableMigrations.current.load(turf::Relaxed), (int) stats.numTableMigrations.total.load(turf::Relaxed));
-        printf("numFlatTrees: %d/%d\n", (int) stats.numFlatTrees.current.load(turf::Relaxed), (int) stats.numFlatTrees.total.load(turf::Relaxed));
-        printf("numFlatTreeMigrations: %d/%d\n", (int) stats.numFlatTreeMigrations.current.load(turf::Relaxed), (int) stats.numFlatTreeMigrations.total.load(turf::Relaxed));
+        printf("numTables: %d/%d\n", (int) stats.numTables.current.load(turf::Relaxed),
+               (int) stats.numTables.total.load(turf::Relaxed));
+        printf("numTableMigrations: %d/%d\n", (int) stats.numTableMigrations.current.load(turf::Relaxed),
+               (int) stats.numTableMigrations.total.load(turf::Relaxed));
+        printf("numFlatTrees: %d/%d\n", (int) stats.numFlatTrees.current.load(turf::Relaxed),
+               (int) stats.numFlatTrees.total.load(turf::Relaxed));
+        printf("numFlatTreeMigrations: %d/%d\n", (int) stats.numFlatTreeMigrations.current.load(turf::Relaxed),
+               (int) stats.numFlatTreeMigrations.total.load(turf::Relaxed));
 #endif
     }
 

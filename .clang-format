@@ -7,3 +7,4 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 SpaceAfterCStyleCast: true
 AllowShortFunctionsOnASingleLine: None
+AlwaysBreakTemplateDeclarations: true

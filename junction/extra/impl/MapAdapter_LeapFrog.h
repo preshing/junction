@@ -24,31 +24,31 @@ namespace extra {
 class MapAdapter {
 public:
     static TURF_CONSTEXPR const char* MapName = "Junction LeapFrog map";
-    
+
     MapAdapter(ureg) {
     }
 
     class ThreadContext {
     private:
         QSBR::Context m_qsbrContext;
-        
+
     public:
         ThreadContext(MapAdapter&, ureg) {
         }
-        
+
         void registerThread() {
             m_qsbrContext = DefaultQSBR.createContext();
         }
-        
+
         void unregisterThread() {
             DefaultQSBR.destroyContext(m_qsbrContext);
         }
-        
+
         void update() {
             DefaultQSBR.update(m_qsbrContext);
         }
     };
-    
+
     typedef ConcurrentMap_LeapFrog<u32, void*> Map;
 
     static ureg getInitialCapacity(ureg maxPopulation) {

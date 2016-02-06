@@ -58,7 +58,7 @@ public:
             if (job == prevJob) {
                 turf::LockGuard<turf::Mutex> guard(pair.mutex);
                 for (;;) {
-                    job = m_job.loadNonatomic();    // No concurrent writes inside lock
+                    job = m_job.loadNonatomic(); // No concurrent writes inside lock
                     if (job != prevJob)
                         break;
                     pair.condVar.wait(guard);

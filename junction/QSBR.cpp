@@ -94,7 +94,7 @@ void QSBR::flush() {
     // This is like saying that all contexts are quiescent,
     // so we can issue all actions at once.
     // No lock is taken.
-    TURF_RACE_DETECT_GUARD(m_flushRaceDetector);   // There should be no concurrent operations
+    TURF_RACE_DETECT_GUARD(m_flushRaceDetector); // There should be no concurrent operations
     for (ureg i = 0; i < m_pendingActions.size(); i++)
         m_pendingActions[i]();
     m_pendingActions.clear();

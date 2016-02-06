@@ -21,7 +21,7 @@ namespace extra {
 class MapAdapter {
 public:
     static TURF_CONSTEXPR const char* MapName = "Null";
-    
+
     MapAdapter(ureg) {
     }
 

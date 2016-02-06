@@ -22,7 +22,7 @@
 #include <junction/MapTraits.h>
 #include <cds/init.h>
 #include <cds/gc/hp.h>
-#include <memory.h>     // memcpy required by cuckoo_map.h
+#include <memory.h> // memcpy required by cuckoo_map.h
 #include <cds/container/cuckoo_map.h>
 
 namespace junction {
@@ -31,8 +31,8 @@ namespace extra {
 class MapAdapter {
 public:
     static TURF_CONSTEXPR const char* MapName = "CDS CuckooMap";
-    
-    cds::gc::HP *m_hpGC;
+
+    cds::gc::HP* m_hpGC;
 
     MapAdapter(ureg) {
         cds::Initialize();
@@ -92,7 +92,7 @@ public:
 
         void* get(u32 key) {
             void* result = NULL;
-            m_map.find(key, [&result](std::pair<const u32, void*>& item){ result = item.second; });
+            m_map.find(key, [&result](std::pair<const u32, void*>& item) { result = item.second; });
             return result;
         }
 

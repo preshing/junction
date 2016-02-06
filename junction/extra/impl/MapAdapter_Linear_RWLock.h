@@ -61,7 +61,7 @@ public:
             turf::SharedLockGuard<turf::RWLock> guard(m_rwLock);
             return m_map.get(key);
         }
-    
+
         void erase(u32 key) {
             turf::ExclusiveLockGuard<turf::RWLock> guard(m_rwLock);
             m_map.erase(key);

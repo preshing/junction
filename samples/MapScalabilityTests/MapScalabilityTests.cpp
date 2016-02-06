@@ -40,7 +40,8 @@ struct SharedState {
     turf::Atomic<u32> doneFlag;
 
     SharedState(MapAdapter& adapter, ureg numKeysPerThread, ureg readsPerWrite, ureg itersPerChunk)
-        : adapter(adapter), map(NULL), numKeysPerThread(numKeysPerThread), readsPerWrite(readsPerWrite), itersPerChunk(itersPerChunk) {
+        : adapter(adapter), map(NULL), numKeysPerThread(numKeysPerThread), readsPerWrite(readsPerWrite),
+          itersPerChunk(itersPerChunk) {
         doneFlag.storeNonatomic(0);
         numThreads = 0;
     }
@@ -79,7 +80,8 @@ public:
 
     Stats m_stats;
 
-    ThreadState(SharedState& shared, ureg threadIndex, u32 rangeLo, u32 rangeHi) : m_shared(shared), m_threadCtx(shared.adapter, threadIndex) {
+    ThreadState(SharedState& shared, ureg threadIndex, u32 rangeLo, u32 rangeHi)
+        : m_shared(shared), m_threadCtx(shared.adapter, threadIndex) {
         m_threadIndex = threadIndex;
         m_rangeLo = rangeLo;
         m_rangeHi = rangeHi;
@@ -97,7 +99,7 @@ public:
 
     void initialPopulate() {
         TURF_ASSERT(m_addIndex == m_removeIndex);
-        MapAdapter::Map *map = m_shared.map;
+        MapAdapter::Map* map = m_shared.map;
         for (ureg i = 0; i < m_shared.numKeysPerThread; i++) {
             u32 key = m_addIndex * Prime;
             if (key >= 2)
@@ -108,7 +110,7 @@ public:
     }
 
     void run() {
-        MapAdapter::Map *map = m_shared.map;
+        MapAdapter::Map* map = m_shared.map;
         turf::CPUTimer::Converter converter;
         Stats stats;
         ureg lookupIndex = m_rangeLo;
@@ -193,16 +195,16 @@ public:
 };
 
 static const turf::extra::Option Options[] = {
-    { "readsPerWrite", 'r', true, "number of reads per write" },
-    { "itersPerChunk", 'i', true, "number of iterations per chunk" },
-    { "chunks", 'c', true, "number of chunks to execute" },
-    { "keepChunkFraction", 'k', true, "threshold fraction of chunk timings to keep" },
+    {"readsPerWrite", 'r', true, "number of reads per write"},
+    {"itersPerChunk", 'i', true, "number of iterations per chunk"},
+    {"chunks", 'c', true, "number of chunks to execute"},
+    {"keepChunkFraction", 'k', true, "threshold fraction of chunk timings to keep"},
 };
 
 int main(int argc, const char** argv) {
     turf::extra::Options options(Options, TURF_STATIC_ARRAY_SIZE(Options));
     options.parse(argc, argv);
-    ureg readsPerWrite = options.getInteger("readsPerWrite", DefaultReadsPerWrite);    
+    ureg readsPerWrite = options.getInteger("readsPerWrite", DefaultReadsPerWrite);
     ureg itersPerChunk = options.getInteger("itersPerChunk", DefaultItersPerChunk);
     ureg chunks = options.getInteger("chunks", DefaultChunks);
     double keepChunkFraction = options.getDouble("keepChunkFraction", 1.0);
@@ -238,8 +240,7 @@ int main(int argc, const char** argv) {
         printf("'itersPerChunk': %d,\n", (int) itersPerChunk);
         printf("'chunks': %d,\n", (int) chunks);
         printf("'keepChunkFraction': %f,\n", keepChunkFraction);
-        printf("'labels': ('numThreads', 'mapOpsDone', 'totalTime'),\n"),
-        printf("'points': [\n");
+        printf("'labels': ('numThreads', 'mapOpsDone', 'totalTime'),\n"), printf("'points': [\n");
         for (shared.numThreads = 1; shared.numThreads <= numCores; shared.numThreads++) {
             if (shared.numThreads > 1) {
                 // Spawn and register a new thread
@@ -263,10 +264,7 @@ int main(int argc, const char** argv) {
                 totals += kickTotals[t];
             }
 
-            printf("    (%d, %d, %f),\n",
-                int(shared.numThreads),
-                int(totals.mapOpsDone),
-                totals.duration);
+            printf("    (%d, %d, %f),\n", int(shared.numThreads), int(totals.mapOpsDone), totals.duration);
         }
         printf("],\n");
         printf("}\n");

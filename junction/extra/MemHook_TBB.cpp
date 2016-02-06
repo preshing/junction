@@ -18,7 +18,7 @@ void* tbbWrap_malloc(size_t size) {
     return TURF_HEAP.alloc(size);
 }
 
-void  tbbWrap_free(void* ptr) {
+void tbbWrap_free(void* ptr) {
     TURF_HEAP.free(ptr);
 }
 
@@ -26,7 +26,7 @@ void* tbbWrap_padded_allocate(size_t size, size_t alignment) {
     return TURF_HEAP.allocAligned(size, alignment);
 }
 
-void  tbbWrap_padded_free(void* ptr) {
+void tbbWrap_padded_free(void* ptr) {
     TURF_HEAP.free(ptr);
 }
 #endif // JUNCTION_WITH_TBB && TBB_USE_TURF_HEAP

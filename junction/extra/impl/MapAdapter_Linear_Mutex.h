@@ -61,7 +61,7 @@ public:
             turf::LockGuard<turf::Mutex> guard(m_mutex);
             return m_map.get(key);
         }
-    
+
         void* erase(u32 key) {
             turf::LockGuard<turf::Mutex> guard(m_mutex);
             return m_map.erase(key);

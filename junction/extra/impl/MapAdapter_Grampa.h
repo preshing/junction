@@ -24,14 +24,14 @@ namespace extra {
 class MapAdapter {
 public:
     static TURF_CONSTEXPR const char* MapName = "Junction Grampa map";
-    
+
     MapAdapter(ureg) {
     }
 
     class ThreadContext {
     private:
         QSBR::Context m_qsbrContext;
-        
+
     public:
         ThreadContext(MapAdapter&, ureg) {
         }

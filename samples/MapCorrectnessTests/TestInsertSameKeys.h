@@ -21,7 +21,7 @@ class TestInsertSameKeys {
 public:
     static const ureg KeysToInsert = 2048;
     TestEnvironment& m_env;
-    MapAdapter::Map *m_map;
+    MapAdapter::Map* m_map;
     turf::extra::Random m_random;
     u32 m_startIndex;
     u32 m_relativePrime;
@@ -35,7 +35,7 @@ public:
         while (keysRemaining > 0) {
             u32 key = index * m_relativePrime;
             key = key ^ (key >> 16);
-            if (key >= 2) {         // Don't insert 0 or 1
+            if (key >= 2) { // Don't insert 0 or 1
                 m_map->insert(key, (void*) uptr(key));
                 keysRemaining--;
             }
@@ -50,7 +50,7 @@ public:
         while (keysRemaining > 0) {
             u32 key = index * m_relativePrime;
             key = key ^ (key >> 16);
-            if (key >= 2) {         // Don't insert 0 or 1
+            if (key >= 2) { // Don't insert 0 or 1
                 m_map->erase(key);
                 keysRemaining--;
             }
@@ -77,7 +77,7 @@ public:
         while (leftToCheck > 0) {
             u32 key = index * m_relativePrime;
             key = key ^ (key >> 16);
-            if (key >= 2) {         // Don't insert 0 or 1
+            if (key >= 2) { // Don't insert 0 or 1
                 if (m_map->get(key) != (void*) uptr(key))
                     TURF_DEBUG_BREAK();
                 actualChecksum += key;
@@ -98,13 +98,13 @@ public:
         for (MapAdapter::Map::Iterator iter(*m_map); iter.isValid(); iter.next()) {
             TURF_DEBUG_BREAK();
         }
-        
+
         u32 index = m_startIndex;
         sreg leftToCheck = KeysToInsert;
         while (leftToCheck > 0) {
             u32 key = index * m_relativePrime;
             key = key ^ (key >> 16);
-            if (key >= 2) {         // Don't insert 0 or 1
+            if (key >= 2) { // Don't insert 0 or 1
                 if (m_map->get(key))
                     TURF_DEBUG_BREAK();
                 leftToCheck--;

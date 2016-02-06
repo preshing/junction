@@ -50,9 +50,10 @@ public:
     u32 m_relativePrime;
     std::vector<ThreadInfo> m_threads;
 
-    TestChurn(TestEnvironment& env) : m_env(env), m_map(MapAdapter::getInitialCapacity(KeysInBlock * BlocksToMaintain * env.numThreads)) {
+    TestChurn(TestEnvironment& env)
+        : m_env(env), m_map(MapAdapter::getInitialCapacity(KeysInBlock * BlocksToMaintain * env.numThreads)) {
         m_threads.resize(m_env.numThreads);
-        m_rangePerThread = u32(-3) / m_env.numThreads;      // from 2 to 0xffffffff inclusive
+        m_rangePerThread = u32(-3) / m_env.numThreads; // from 2 to 0xffffffff inclusive
         TURF_ASSERT(KeysInBlock * (BlocksToMaintain + BlocksToLookup + 1) < m_rangePerThread);
         u32 startIndex = 2;
         for (ureg i = 0; i < m_env.numThreads; i++) {
@@ -90,76 +91,76 @@ public:
         TURF_ASSERT(thread.insertIndex != thread.eraseIndex);
         for (sreg stepsRemaining = StepsPerIteration; stepsRemaining > 0; stepsRemaining--) {
             switch (thread.phase) {
-                case Phase_Insert: {
-                    for (sreg keysRemaining = KeysInBlock; keysRemaining > 0; keysRemaining--) {
-                        u32 key = thread.insertIndex * m_relativePrime;
-                        key = key ^ (key >> 16);
-                        if (key >= 2) {
-                            m_map.insert(key, (void*) uptr(key));
-                        }
-                        if (++thread.insertIndex >= thread.rangeHi)
-                            thread.insertIndex = thread.rangeLo;
-                        TURF_ASSERT(thread.insertIndex != thread.eraseIndex);
+            case Phase_Insert: {
+                for (sreg keysRemaining = KeysInBlock; keysRemaining > 0; keysRemaining--) {
+                    u32 key = thread.insertIndex * m_relativePrime;
+                    key = key ^ (key >> 16);
+                    if (key >= 2) {
+                        m_map.insert(key, (void*) uptr(key));
                     }
-                    thread.phase = Phase_Lookup;
-                    thread.lookupIndex = thread.insertIndex;
-                    thread.keysToCheck = KeysInBlock + (thread.random.next32() % (KeysInBlock * (BlocksToLookup - 1)));
-                    break;
+                    if (++thread.insertIndex >= thread.rangeHi)
+                        thread.insertIndex = thread.rangeLo;
+                    TURF_ASSERT(thread.insertIndex != thread.eraseIndex);
                 }
-                case Phase_Lookup: {
-                    sreg keysRemaining = turf::util::min(thread.keysToCheck, KeysInBlock);
-                    thread.keysToCheck -= keysRemaining;
-                    for (; keysRemaining > 0; keysRemaining--) {
-                        if (thread.lookupIndex == thread.rangeLo)
-                            thread.lookupIndex = thread.rangeHi;
-                        thread.lookupIndex--;
-                        u32 key = thread.lookupIndex * m_relativePrime;
-                        key = key ^ (key >> 16);
-                        if (key >= 2) {
-                            if (m_map.get(key) != (void*) uptr(key))
-                                TURF_DEBUG_BREAK();
-                        }
+                thread.phase = Phase_Lookup;
+                thread.lookupIndex = thread.insertIndex;
+                thread.keysToCheck = KeysInBlock + (thread.random.next32() % (KeysInBlock * (BlocksToLookup - 1)));
+                break;
+            }
+            case Phase_Lookup: {
+                sreg keysRemaining = turf::util::min(thread.keysToCheck, KeysInBlock);
+                thread.keysToCheck -= keysRemaining;
+                for (; keysRemaining > 0; keysRemaining--) {
+                    if (thread.lookupIndex == thread.rangeLo)
+                        thread.lookupIndex = thread.rangeHi;
+                    thread.lookupIndex--;
+                    u32 key = thread.lookupIndex * m_relativePrime;
+                    key = key ^ (key >> 16);
+                    if (key >= 2) {
+                        if (m_map.get(key) != (void*) uptr(key))
+                            TURF_DEBUG_BREAK();
                     }
-                    if (thread.keysToCheck == 0) {
-                        thread.phase = Phase_Erase;
-                    }
-                    break;
                 }
-                case Phase_Erase: {
-                    for (sreg keysRemaining = KeysInBlock; keysRemaining > 0; keysRemaining--) {
-                        u32 key = thread.eraseIndex * m_relativePrime;
-                        key = key ^ (key >> 16);
-                        if (key >= 2) {
-                            m_map.erase(key);
-                        }
-                        if (++thread.eraseIndex >= thread.rangeHi)
-                            thread.eraseIndex = thread.rangeLo;
-                        TURF_ASSERT(thread.insertIndex != thread.eraseIndex);
-                    }
-                    thread.phase = Phase_LookupDeleted;
-                    thread.lookupIndex = thread.eraseIndex;
-                    thread.keysToCheck = KeysInBlock + (thread.random.next32() % (KeysInBlock * (BlocksToLookup - 1)));
-                    break;
+                if (thread.keysToCheck == 0) {
+                    thread.phase = Phase_Erase;
                 }
-                case Phase_LookupDeleted: {
-                    sreg keysRemaining = turf::util::min(thread.keysToCheck, KeysInBlock);
-                    thread.keysToCheck -= keysRemaining;
-                    for (; keysRemaining > 0; keysRemaining--) {
-                        if (thread.lookupIndex == thread.rangeLo)
-                            thread.lookupIndex = thread.rangeHi;
-                        thread.lookupIndex--;
-                        u32 key = thread.lookupIndex * m_relativePrime;
-                        key = key ^ (key >> 16);
-                        if (key >= 2) {
-                            if (m_map.get(key))
-                                TURF_DEBUG_BREAK();
-                        }
+                break;
+            }
+            case Phase_Erase: {
+                for (sreg keysRemaining = KeysInBlock; keysRemaining > 0; keysRemaining--) {
+                    u32 key = thread.eraseIndex * m_relativePrime;
+                    key = key ^ (key >> 16);
+                    if (key >= 2) {
+                        m_map.erase(key);
                     }
-                    if (thread.keysToCheck == 0) {
-                        thread.phase = Phase_Insert;
-                    }
-                    break;
+                    if (++thread.eraseIndex >= thread.rangeHi)
+                        thread.eraseIndex = thread.rangeLo;
+                    TURF_ASSERT(thread.insertIndex != thread.eraseIndex);
                 }
+                thread.phase = Phase_LookupDeleted;
+                thread.lookupIndex = thread.eraseIndex;
+                thread.keysToCheck = KeysInBlock + (thread.random.next32() % (KeysInBlock * (BlocksToLookup - 1)));
+                break;
+            }
+            case Phase_LookupDeleted: {
+                sreg keysRemaining = turf::util::min(thread.keysToCheck, KeysInBlock);
+                thread.keysToCheck -= keysRemaining;
+                for (; keysRemaining > 0; keysRemaining--) {
+                    if (thread.lookupIndex == thread.rangeLo)
+                        thread.lookupIndex = thread.rangeHi;
+                    thread.lookupIndex--;
+                    u32 key = thread.lookupIndex * m_relativePrime;
+                    key = key ^ (key >> 16);
+                    if (key >= 2) {
+                        if (m_map.get(key))
+                            TURF_DEBUG_BREAK();
+                    }
+                }
+                if (thread.keysToCheck == 0) {
+                    thread.phase = Phase_Insert;
+                }
+                break;
+            }
             }
         }
         m_env.threads[threadIndex].update();

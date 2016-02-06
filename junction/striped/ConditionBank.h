@@ -52,15 +52,15 @@ extern ConditionBank DefaultConditionBank;
 } // namespace junction
 
 #define JUNCTION_STRIPED_CONDITIONBANK_DEFINE_MEMBER()
-#define JUNCTION_STRIPED_CONDITIONBANK_GET(objectPtr)   (junction::striped::DefaultConditionBank.get(objectPtr))
+#define JUNCTION_STRIPED_CONDITIONBANK_GET(objectPtr) (junction::striped::DefaultConditionBank.get(objectPtr))
 
 #else // JUNCTION_USE_STRIPING
 
 //-----------------------------------
 // Striping disabled
 //-----------------------------------
-#define JUNCTION_STRIPED_CONDITIONBANK_DEFINE_MEMBER()  junction::striped::ConditionPair m_conditionPair;
-#define JUNCTION_STRIPED_CONDITIONBANK_GET(objectPtr)   ((objectPtr)->m_conditionPair)
+#define JUNCTION_STRIPED_CONDITIONBANK_DEFINE_MEMBER() junction::striped::ConditionPair m_conditionPair;
+#define JUNCTION_STRIPED_CONDITIONBANK_GET(objectPtr) ((objectPtr)->m_conditionPair)
 
 #endif // JUNCTION_USE_STRIPING
 

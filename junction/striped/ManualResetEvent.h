@@ -40,10 +40,11 @@ public:
     }
 
     void signal() {
-        u8 prevState = m_state.fetchOr(Signaled, turf::Release);    // Synchronizes-with the load in wait (fast path)
+        u8 prevState = m_state.fetchOr(Signaled, turf::Release); // Synchronizes-with the load in wait (fast path)
         if (prevState & HasWaiters) {
             ConditionPair& pair = JUNCTION_STRIPED_CONDITIONBANK_GET(this);
-            turf::LockGuard<turf::Mutex> guard(pair.mutex);   // Prevents the wake from occuring in the middle of wait()'s critical section
+            turf::LockGuard<turf::Mutex> guard(
+                pair.mutex); // Prevents the wake from occuring in the middle of wait()'s critical section
             pair.condVar.wakeAll();
         }
     }
@@ -57,7 +58,7 @@ public:
     }
 
     void wait() {
-        u8 state = m_state.load(turf::Acquire);     // Synchronizes-with the fetchOr in signal (fast path)
+        u8 state = m_state.load(turf::Acquire); // Synchronizes-with the fetchOr in signal (fast path)
         if ((state & Signaled) == 0) {
             ConditionPair& pair = JUNCTION_STRIPED_CONDITIONBANK_GET(this);
             turf::LockGuard<turf::Mutex> guard(pair.mutex);

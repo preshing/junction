@@ -61,7 +61,8 @@ struct SharedState {
     turf::Atomic<u32> doneFlag;
 
     SharedState(MapAdapter& adapter, ureg numThreads, ureg numKeysPerThread, ureg readsPerWrite, ureg itersPerChunk)
-        : adapter(adapter), map(NULL), numKeysPerThread(numKeysPerThread), numThreads(numThreads), readsPerWrite(readsPerWrite), itersPerChunk(itersPerChunk) {
+        : adapter(adapter), map(NULL), numKeysPerThread(numKeysPerThread), numThreads(numThreads), readsPerWrite(readsPerWrite),
+          itersPerChunk(itersPerChunk) {
         delayFactor = 0.5f;
         doneFlag.storeNonatomic(0);
     }
@@ -103,7 +104,8 @@ public:
 
     Stats m_stats;
 
-    ThreadState(SharedState& shared, ureg threadIndex, u32 rangeLo, u32 rangeHi) : m_shared(shared), m_threadCtx(shared.adapter, threadIndex) {
+    ThreadState(SharedState& shared, ureg threadIndex, u32 rangeLo, u32 rangeHi)
+        : m_shared(shared), m_threadCtx(shared.adapter, threadIndex) {
         m_threadIndex = threadIndex;
         m_rangeLo = rangeLo;
         m_rangeHi = rangeHi;
@@ -121,7 +123,7 @@ public:
 
     void initialPopulate() {
         TURF_ASSERT(m_addIndex == m_removeIndex);
-        MapAdapter::Map *map = m_shared.map;
+        MapAdapter::Map* map = m_shared.map;
         for (ureg i = 0; i < m_shared.numKeysPerThread; i++) {
             u32 key = m_addIndex * Prime;
             map->insert(key, (void*) (key & ~uptr(3)));
@@ -131,7 +133,7 @@ public:
     }
 
     void run() {
-        MapAdapter::Map *map = m_shared.map;
+        MapAdapter::Map* map = m_shared.map;
         turf::CPUTimer::Converter converter;
         Delay delay(m_shared.delayFactor);
         Stats stats;
@@ -221,10 +223,10 @@ public:
 };
 
 static const turf::extra::Option Options[] = {
-    { "readsPerWrite", 'r', true, "number of reads per write" },
-    { "itersPerChunk", 'i', true, "number of iterations per chunk" },
-    { "chunks", 'c', true, "number of chunks to execute" },
-    { "keepChunkFraction", 'k', true, "threshold fraction of chunk timings to keep" },
+    {"readsPerWrite", 'r', true, "number of reads per write"},
+    {"itersPerChunk", 'i', true, "number of iterations per chunk"},
+    {"chunks", 'c', true, "number of chunks to execute"},
+    {"keepChunkFraction", 'k', true, "threshold fraction of chunk timings to keep"},
 };
 
 int main(int argc, const char** argv) {
@@ -262,10 +264,8 @@ int main(int argc, const char** argv) {
         printf("'itersPerChunk': %d,\n", (int) itersPerChunk);
         printf("'chunks': %d,\n", (int) chunks);
         printf("'keepChunkFraction': %f,\n", keepChunkFraction);
-        printf("'labels': ('delayFactor', 'workUnitsDone', 'mapOpsDone', 'totalTime'),\n"),
-        printf("'points': [\n");
-        for (float delayFactor = 1.f; delayFactor >= 0.0005f; delayFactor *= 0.95f)
-        {
+        printf("'labels': ('delayFactor', 'workUnitsDone', 'mapOpsDone', 'totalTime'),\n"), printf("'points': [\n");
+        for (float delayFactor = 1.f; delayFactor >= 0.0005f; delayFactor *= 0.95f) {
             shared.delayFactor = delayFactor;
 
             std::vector<ThreadState::Stats> kickTotals;
@@ -285,11 +285,8 @@ int main(int argc, const char** argv) {
                 totals += kickTotals[t];
             }
 
-            printf("    (%f, %d, %d, %f),\n",
-                shared.delayFactor,
-                int(totals.workUnitsDone),
-                int(totals.mapOpsDone),
-                totals.duration);
+            printf("    (%f, %d, %d, %f),\n", shared.delayFactor, int(totals.workUnitsDone), int(totals.mapOpsDone),
+                   totals.duration);
         }
         printf("],\n");
         printf("}\n");

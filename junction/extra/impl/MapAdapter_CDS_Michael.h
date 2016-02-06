@@ -32,7 +32,7 @@ class MapAdapter {
 public:
     static TURF_CONSTEXPR const char* MapName = "CDS MichaelKVList";
 
-    cds::gc::HP *m_hpGC;
+    cds::gc::HP* m_hpGC;
 
     MapAdapter(ureg) {
         cds::Initialize();
@@ -64,21 +64,18 @@ public:
     class Map {
     private:
         // List traits based on std::less predicate
-        struct ListTraits : public cds::container::michael_list::traits
-        {
-            typedef std::less<u32>      less;
+        struct ListTraits : public cds::container::michael_list::traits {
+            typedef std::less<u32> less;
         };
 
         // Ordered list
-        typedef cds::container::MichaelKVList< cds::gc::HP, u32, void*, ListTraits> OrderedList;
+        typedef cds::container::MichaelKVList<cds::gc::HP, u32, void*, ListTraits> OrderedList;
 
         // Map traits
-        struct MapTraits : public cds::container::michael_map::traits
-        {
+        struct MapTraits : public cds::container::michael_map::traits {
             struct hash {
-                size_t operator()( u32 i ) const
-                {
-                    return cds::opt::v::hash<u32>()( i );
+                size_t operator()(u32 i) const {
+                    return cds::opt::v::hash<u32>()(i);
                 }
             };
         };
@@ -95,7 +92,7 @@ public:
 
         void* get(u32 key) {
             void* result = NULL;
-            m_map.find(key, [&result](std::pair<const u32, void*>& item){ result = item.second; });
+            m_map.find(key, [&result](std::pair<const u32, void*>& item) { result = item.second; });
             return result;
         }
 

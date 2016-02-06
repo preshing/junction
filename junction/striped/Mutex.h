@@ -48,7 +48,7 @@ public:
     bool tryLock() {
         return (m_status.compareExchange(-1, 0, turf::Acquire) < 0);
     }
-    
+
     void unlock() {
         if (m_status.exchange(-1, turf::Release) > 0)
             m_event.signal();

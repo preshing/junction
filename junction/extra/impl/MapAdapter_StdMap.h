@@ -62,7 +62,7 @@ public:
             MapType::iterator iter = m_map.find(key);
             return (iter == m_map.end()) ? NULL : iter->second;
         }
-    
+
         void erase(u32 key) {
             std::lock_guard<std::mutex> guard(m_mutex);
             m_map.erase(key);

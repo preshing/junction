@@ -25,10 +25,10 @@ class QSBR {
 private:
     struct Action {
         void (*func)(void*);
-        uptr param[4];      // Size limit found experimentally. Verified by assert below.
+        uptr param[4]; // Size limit found experimentally. Verified by assert below.
 
         Action(void (*f)(void*), void* p, ureg paramSize) : func(f) {
-            TURF_ASSERT(paramSize <= sizeof(param));    // Verify size limit.
+            TURF_ASSERT(paramSize <= sizeof(param)); // Verify size limit.
             memcpy(&param, p, paramSize);
         }
         void operator()() {
@@ -70,11 +70,11 @@ public:
             void (T::*pmf)();
             T* target;
             static void thunk(void* param) {
-                Closure* self = (Closure*) param; 
-                TURF_CALL_MEMBER(*self->target, self->pmf)();
+                Closure* self = (Closure*) param;
+                TURF_CALL_MEMBER (*self->target, self->pmf)();
             }
         };
-        Closure closure = { pmf, target };
+        Closure closure = {pmf, target};
         turf::LockGuard<turf::Mutex> guard(m_mutex);
         TURF_RACE_DETECT_GUARD(m_flushRaceDetector);
         m_deferredActions.push_back(Action(Closure::thunk, &closure, sizeof(closure)));

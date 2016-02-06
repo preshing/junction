@@ -39,5 +39,4 @@ struct TestEnvironment {
     }
 };
 
-
 #endif // SAMPLES_MAPCORRECTNESSTESTS_TESTENVIRONMENT_H
