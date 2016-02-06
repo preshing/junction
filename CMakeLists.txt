@@ -6,6 +6,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_CONFIGURATION_TYPES "Debug;RelWithAsserts;RelWithDebInfo" CACHE INTERNAL "Build configs")
 	project(Junction)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    set(JUNCTION_WITH_SAMPLES TRUE CACHE BOOL "Include all Junction samples in generated build system")
+    set(JUNCTION_MAKE_INSTALLABLE TRUE)
+    set(TURF_MAKE_INSTALLABLE TRUE)
 endif()	
 
 # Default values, can be overridden by user
@@ -86,7 +89,7 @@ if(JUNCTION_WITH_LIBCUCKOO)
 endif()
 
 # If this is the root listfile, add all samples
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if((CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR) AND JUNCTION_WITH_SAMPLES)
     file(GLOB children samples/*)
     foreach(child ${children})
         if(EXISTS "${child}/CMakeLists.txt")
@@ -113,6 +116,14 @@ add_library(junction ${JUNCTION_FILES})
 
 # Set include dirs for this library (done last, so it's not inherited by subprojects like Tervel, NBDS).
 include_directories(${JUNCTION_ALL_INCLUDE_DIRS})
+
+# Make installable.
+if(JUNCTION_MAKE_INSTALLABLE)
+    install(TARGETS junction DESTINATION lib)
+    install(DIRECTORY junction/ DESTINATION include/junction FILES_MATCHING PATTERN "*.h")
+    file(GLOB configHeaders "${CMAKE_CURRENT_BINARY_DIR}/include/*.h")
+    install(FILES ${configHeaders} DESTINATION include)
+endif()
 
 # Export include dirs/libraries to parent project if we were invoked using add_subdirectory().
 if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
