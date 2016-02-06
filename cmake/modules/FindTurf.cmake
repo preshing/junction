@@ -12,13 +12,13 @@
 # You'll want to set the compiler options before calling AddTurfTarget().
 #----------------------------------------------
 
-find_path(TURF_ROOT NAMES "CMakeLists.txt" "cmake/TurfProjectDefs.cmake" PATHS
+find_path(TURF_ROOT "turf/Core.h" PATHS
     "${CMAKE_CURRENT_SOURCE_DIR}/../turf"
     "${CMAKE_SOURCE_DIR}/../turf"
     "${CMAKE_CURRENT_LIST_DIR}/../../../turf")
 
 if(TURF_ROOT)
-    include("${TURF_ROOT}/cmake/TurfProjectDefs.cmake")
+    set(TURF_FOUND TRUE)
 else()
     message("Can't find Turf!")
     if(Turf_FIND_REQUIRED)

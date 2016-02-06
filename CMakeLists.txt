@@ -6,10 +6,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_CONFIGURATION_TYPES "Debug;RelWithAsserts;RelWithDebInfo" CACHE INTERNAL "Build configs")
 	project(Junction)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-    include(cmake/JunctionProjectDefs.cmake)
-    ApplyTurfBuildSettings()
-elseif(NOT JUNCTION_FOUND)
-    message(FATAL_ERROR "You must include cmake/JunctionProjectDefs.cmake before adding this subdirectory")
 endif()	
 
 # Default values, can be overridden by user
@@ -27,8 +23,16 @@ set(JUNCTION_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_
 set(JUNCTION_ALL_INCLUDE_DIRS "${JUNCTION_INCLUDE_DIRS}")
 set(JUNCTION_ALL_LIBRARIES junction)
 set(JUNCTION_ALL_DLLS "")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-# Add turf targets
+# Add turf targets and import its macros since we use them below
+find_package(Turf REQUIRED)
+include("${TURF_ROOT}/cmake/Macros.cmake")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    # If this is the root project, apply build settings here so that
+    # they're applied to all targets
+    ApplyTurfBuildSettings()
+endif()
 add_subdirectory(${TURF_ROOT} turf)
 list(APPEND JUNCTION_ALL_INCLUDE_DIRS ${TURF_INCLUDE_DIRS})
 list(APPEND JUNCTION_ALL_LIBRARIES ${TURF_ALL_LIBRARIES})

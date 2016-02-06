@@ -9,4 +9,4 @@ endif()
 
 set(TEST_CHECK_MAP_CONTENTS TRUE CACHE BOOL "Validate contents of the map using its iterator")
 set(JUNCTION_USERCONFIG "junction_userconfig.h.in" CACHE STRING "Custom config for ${SAMPLE_NAME}")
-include(../../cmake/AddSample.cmake)
+include(../AddSample.cmake)
