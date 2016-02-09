@@ -23,7 +23,7 @@ namespace junction {
 
 TURF_TRACE_DECLARE(ConcurrentMap_Linear, 18)
 
-template <typename K, typename V, class KT = DefaultKeyTraits<K>, class VT = DefaultValueTraits<V>>
+template <typename K, typename V, class KT = DefaultKeyTraits<K>, class VT = DefaultValueTraits<V> >
 class ConcurrentMap_Linear {
 public:
     typedef K Key;

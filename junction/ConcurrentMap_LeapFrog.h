@@ -23,7 +23,7 @@ namespace junction {
 
 TURF_TRACE_DECLARE(ConcurrentMap_LeapFrog, 17)
 
-template <typename K, typename V, class KT = DefaultKeyTraits<K>, class VT = DefaultValueTraits<V>>
+template <typename K, typename V, class KT = DefaultKeyTraits<K>, class VT = DefaultValueTraits<V> >
 class ConcurrentMap_LeapFrog {
 public:
     typedef K Key;
