@@ -58,15 +58,25 @@ Some developers will prefer approach #3, but I encourage you to try approach #1 
 
 If your project is already based on CMake, clone the Junction and Turf source trees somewhere, then call `add_subdirectory` on Junction's root folder from your own CMake script. This will add both Junction and Turf targets to your build system.
 
-If you use Git, you can add the Junction and Turf repositories as submodules. Otherwise, you can just copy the Junction and Turf source trees to your repository.
-
-[FIXME: Create a repository with a sample project that demonstrates this.]
+For a simple example, see the [junction-sample](https://github.com/preshing/junction-sample) repository.
 
 ### Building the Libraries Separately
 
 Generate Junction's build system using the steps described in the *Getting Started* section, then use it to build the libraries you need. Add these to your own build system. Make sure to generate static libraries to avoid linking parts of the library that aren't needed.
 
-[FIXME: Use CMake's install feature to generate a clean output tree, so users don't have to fiddle with include and library paths too much.]
+If you build the `install` target provided by Junction's CMake script, the build system will output a clean folder containing only the headers and libs that you need. You can add this to your own project using a single include path. Choose the output directory by specifying the `CMAKE_INSTALL_PREFIX` variable to CMake. Additionally, you can specify `JUNCTION_WITH_SAMPLES=OFF` to avoid building the samples. For example:
+
+    $ cmake -DCMAKE_INSTALL_PREFIX=~/junction-install -DJUNCTION_WITH_SAMPLES=OFF ..
+    $ cmake --build . --target install --config RelWithDebInfo
+
+Notes:
+
+* Instead of running the second `cmake` command, which runs the build system, you could run your build system directly. For example, `make install` on Unix, or build the INSTALL project in Visual Studio.
+* If using makefiles, you'll probably want to pass the additional option `-DCMAKE_BUILD_TYPE=RelWithDebInfo` to the first `cmake` command.
+
+This will create the following file structure:
+
+![Install folder](/docs/install-folder.png)
 
 ## Configuration
 
