@@ -5,8 +5,8 @@
 # Were we included from the root listfile?
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # Yes, it's the root.
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake/modules")
-    find_package(Turf REQUIRED)
+    get_filename_component(outerPath "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+    set(TURF_ROOT "${outerPath}/turf" CACHE STRING "Path to Turf")
     include("${TURF_ROOT}/cmake/Macros.cmake")
     ApplyTurfBuildSettings()
     add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/.." junction)

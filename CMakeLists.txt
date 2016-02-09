@@ -29,7 +29,8 @@ set(JUNCTION_ALL_DLLS "")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 # Add turf targets and import its macros since we use them below
-find_package(Turf REQUIRED)
+get_filename_component(outerPath "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+set(TURF_ROOT "${outerPath}/turf" CACHE STRING "Path to Turf")
 include("${TURF_ROOT}/cmake/Macros.cmake")
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # If this is the root project, apply build settings here so that
