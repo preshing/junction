@@ -41,7 +41,7 @@ private:
         if (root & 1) {
             typename Details::FlatTree* flatTree = (typename Details::FlatTree*) (root & ~ureg(1));
             for (;;) {
-                ureg leafIdx = (hash >> flatTree->safeShift);
+                ureg leafIdx = ureg(hash >> flatTree->safeShift);
                 table = flatTree->getTables()[leafIdx].load(turf::Relaxed);
                 if (ureg(table) != Details::RedirectFlatTree) {
                     sizeMask = (Details::LeafSize - 1);
@@ -189,7 +189,7 @@ public:
                         // Retry the loop.
                     } else {
                         ureg repeat = ureg(1) << (migration->m_safeShift - flatTree->safeShift);
-                        ureg dstStartIndex = migration->m_baseHash >> flatTree->safeShift;
+                        ureg dstStartIndex = ureg(migration->m_baseHash >> flatTree->safeShift);
                         // The subtree we're about to publish fits inside the flattree.
                         TURF_ASSERT(dstStartIndex + migration->m_numDestinations * repeat - 1 <= Hash(-1) >> flatTree->safeShift);
                         // If a previous attempt to publish got redirected, resume publishing into the new flattree,

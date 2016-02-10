@@ -37,7 +37,7 @@ private:
     turf::Atomic<typename Details::Table*> m_root;
 
 public:
-    ConcurrentMap_LeapFrog(ureg capacity) : m_root(Details::Table::create(capacity)) {
+    ConcurrentMap_LeapFrog(ureg capacity = Details::InitialSize) : m_root(Details::Table::create(capacity)) {
     }
 
     ~ConcurrentMap_LeapFrog() {

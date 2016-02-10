@@ -37,7 +37,7 @@ private:
     turf::Atomic<typename Details::Table*> m_root;
 
 public:
-    ConcurrentMap_Linear(ureg capacity) {
+    ConcurrentMap_Linear(ureg capacity = Details::InitialSize) {
         ureg limitNumValues = capacity * 3 / 4;
         m_root.storeNonatomic(Details::Table::create(capacity, limitNumValues));
     }

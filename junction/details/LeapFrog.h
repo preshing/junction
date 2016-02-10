@@ -191,7 +191,7 @@ struct LeapFrog {
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
-        ureg idx = hash;
+        ureg idx = ureg(hash);
 
         // Check hashed cell first, though it may not even belong to the bucket.
         CellGroup* group = table->getCellGroups() + ((idx & sizeMask) >> 2);

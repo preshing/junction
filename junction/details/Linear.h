@@ -117,11 +117,11 @@ struct Linear {
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
-        for (ureg idx = hash;; idx++) {
+        for (ureg idx = ureg(hash);; idx++) {
             idx &= sizeMask;
             Cell* cell = table->getCells() + idx;
             // Load the hash that was there.
-            uptr probeHash = cell->hash.load(turf::Relaxed);
+            Hash probeHash = cell->hash.load(turf::Relaxed);
             if (probeHash == hash) {
                 TURF_TRACE(Linear, 1, "[find] found existing cell", uptr(table), idx);
                 return cell;
@@ -139,11 +139,11 @@ struct Linear {
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
 
-        for (ureg idx = hash;; idx++) {
+        for (ureg idx = ureg(hash);; idx++) {
             idx &= sizeMask;
             cell = table->getCells() + idx;
             // Load the existing hash.
-            uptr probeHash = cell->hash.load(turf::Relaxed);
+            Hash probeHash = cell->hash.load(turf::Relaxed);
             if (probeHash == hash) {
                 TURF_TRACE(Linear, 3, "[insert] found existing cell", uptr(table), idx);
                 return InsertResult_AlreadyFound; // Key found in table. Return the existing cell.
@@ -159,7 +159,7 @@ struct Linear {
                     return InsertResult_Overflow;
                 }
                 // Try to reserve this cell.
-                uptr prevHash = cell->hash.compareExchange(KeyTraits::NullHash, hash, turf::Relaxed);
+                Hash prevHash = cell->hash.compareExchange(KeyTraits::NullHash, hash, turf::Relaxed);
                 if (prevHash == KeyTraits::NullHash) {
                     // Success. We reserved a new cell.
                     TURF_TRACE(Linear, 5, "[insert] reserved cell", prevCellsRemaining, idx);

@@ -110,7 +110,7 @@ struct Grampa {
             : sizeMask(sizeMask), baseHash(baseHash), unsafeRangeShift(unsafeRangeShift) {
         }
 
-        static Table* create(ureg tableSize, ureg baseHash, ureg unsafeShift) {
+        static Table* create(ureg tableSize, Hash baseHash, ureg unsafeShift) {
             TURF_ASSERT(turf::util::isPowerOf2(tableSize));
             TURF_ASSERT(unsafeShift > 0 && unsafeShift <= sizeof(Hash) * 8);
             TURF_ASSERT(tableSize >= 4);
@@ -362,7 +362,7 @@ struct Grampa {
         TURF_TRACE(Grampa, 3, "[insert] called", uptr(table), hash);
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
-        ureg idx = hash;
+        ureg idx = ureg(hash);
 
         // Check hashed cell first, though it may not even belong to the bucket.
         CellGroup* group = table->getCellGroups() + ((idx & sizeMask) >> 2);
