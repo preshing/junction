@@ -30,7 +30,7 @@
 namespace junction {
 namespace details {
 
-TURF_TRACE_DECLARE(Linear, 26)
+TURF_TRACE_DECLARE(Linear, 27)
 
 template <class Map>
 struct Linear {
@@ -221,33 +221,39 @@ struct Linear {
         }
     }
 
-    static void beginTableMigration(Map& map, Table* table) {
-        // Estimate number of cells in use based on a small sample.
-        ureg idx = 0;
-        ureg sampleSize = turf::util::min<ureg>(table->sizeMask + 1, CellsInUseSample);
-        ureg inUseCells = 0;
-        for (; idx < sampleSize; idx++) {
-            Cell* cell = table->getCells() + idx;
-            Value value = cell->value.load(turf::Relaxed);
-            if (value == Value(ValueTraits::Redirect)) {
-                // Another thread kicked off the jobCoordinator. The caller will participate upon return.
-                TURF_TRACE(Linear, 11, "[beginTableMigration] redirected while determining table size", 0, 0);
-                return;
+    static void beginTableMigration(Map& map, Table* table, bool mustDouble) {
+        ureg nextTableSize;
+        if (mustDouble) {
+            TURF_TRACE(Linear, 11, "[beginTableMigration] forced to double", 0, 0);
+            nextTableSize = (table->sizeMask + 1) * 2;
+        } else {
+            // Estimate number of cells in use based on a small sample.
+            ureg idx = 0;
+            ureg sampleSize = turf::util::min<ureg>(table->sizeMask + 1, CellsInUseSample);
+            ureg inUseCells = 0;
+            for (; idx < sampleSize; idx++) {
+                Cell* cell = table->getCells() + idx;
+                Value value = cell->value.load(turf::Relaxed);
+                if (value == Value(ValueTraits::Redirect)) {
+                    // Another thread kicked off the jobCoordinator. The caller will participate upon return.
+                    TURF_TRACE(Linear, 12, "[beginTableMigration] redirected while determining table size", 0, 0);
+                    return;
+                }
+                if (value != Value(ValueTraits::NullValue))
+                    inUseCells++;
             }
-            if (value != Value(ValueTraits::NullValue))
-                inUseCells++;
-        }
-        float inUseRatio = float(inUseCells) / sampleSize;
-        float estimatedInUse = (table->sizeMask + 1) * inUseRatio;
+            float inUseRatio = float(inUseCells) / sampleSize;
+            float estimatedInUse = (table->sizeMask + 1) * inUseRatio;
 #if JUNCTION_LINEAR_FORCE_MIGRATION_OVERFLOWS
-        // Periodically underestimate the number of cells in use.
-        // This exercises the code that handles overflow during migration.
-        static ureg counter = 1;
-        if ((++counter & 3) == 0) {
-            estimatedInUse /= 4;
-        }
+            // Periodically underestimate the number of cells in use.
+            // This exercises the code that handles overflow during migration.
+            static ureg counter = 1;
+            if ((++counter & 3) == 0) {
+                estimatedInUse /= 4;
+            }
 #endif
-        ureg nextTableSize = turf::util::max(InitialSize, turf::util::roundUpPowerOf2(ureg(estimatedInUse * 2)));
+            nextTableSize = turf::util::max(InitialSize, turf::util::roundUpPowerOf2(ureg(estimatedInUse * 2)));
+        }
         beginTableMigrationToSize(map, table, nextTableSize);
     }
 }; // Linear
@@ -271,12 +277,12 @@ bool Linear<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
                     srcCell->value.compareExchange(Value(ValueTraits::NullValue), Value(ValueTraits::Redirect), turf::Relaxed);
                 if (srcValue == Value(ValueTraits::Redirect)) {
                     // srcValue is already marked Redirect due to previous incomplete migration.
-                    TURF_TRACE(Linear, 12, "[migrateRange] empty cell already redirected", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Linear, 13, "[migrateRange] empty cell already redirected", uptr(srcTable), srcIdx);
                     break;
                 }
                 if (srcValue == Value(ValueTraits::NullValue))
                     break; // Redirect has been placed. Break inner loop, continue outer loop.
-                TURF_TRACE(Linear, 13, "[migrateRange] race to insert key", uptr(srcTable), srcIdx);
+                TURF_TRACE(Linear, 14, "[migrateRange] race to insert key", uptr(srcTable), srcIdx);
                 // Otherwise, somebody just claimed the cell. Read srcHash again...
             } else {
                 // Check for deleted/uninitialized value.
@@ -285,15 +291,15 @@ bool Linear<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
                     // Try to put a Redirect marker.
                     if (srcCell->value.compareExchangeStrong(srcValue, Value(ValueTraits::Redirect), turf::Relaxed))
                         break; // Redirect has been placed. Break inner loop, continue outer loop.
-                    TURF_TRACE(Linear, 14, "[migrateRange] race to insert value", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Linear, 15, "[migrateRange] race to insert value", uptr(srcTable), srcIdx);
                     if (srcValue == Value(ValueTraits::Redirect)) {
                         // FIXME: I don't think this will happen. Investigate & change to assert
-                        TURF_TRACE(Linear, 15, "[migrateRange] race inserted Redirect", uptr(srcTable), srcIdx);
+                        TURF_TRACE(Linear, 16, "[migrateRange] race inserted Redirect", uptr(srcTable), srcIdx);
                         break;
                     }
                 } else if (srcValue == Value(ValueTraits::Redirect)) {
                     // srcValue is already marked Redirect due to previous incomplete migration.
-                    TURF_TRACE(Linear, 16, "[migrateRange] in-use cell already redirected", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Linear, 17, "[migrateRange] in-use cell already redirected", uptr(srcTable), srcIdx);
                     break;
                 }
 
@@ -331,11 +337,11 @@ bool Linear<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
                         // srcValue was non-NULL when we decided to migrate it, but it may have changed to NULL
                         // by a late-arriving erase.
                         if (srcValue == Value(ValueTraits::NullValue))
-                            TURF_TRACE(Linear, 17, "[migrateRange] racing update was erase", uptr(srcTable), srcIdx);
+                            TURF_TRACE(Linear, 18, "[migrateRange] racing update was erase", uptr(srcTable), srcIdx);
                         break;
                     }
                     // There was a late-arriving write (or erase) to the src. Migrate the new value and try again.
-                    TURF_TRACE(Linear, 18, "[migrateRange] race to update migrated value", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Linear, 19, "[migrateRange] race to update migrated value", uptr(srcTable), srcIdx);
                     srcValue = doubleCheckedSrcValue;
                 }
                 // Cell successfully migrated. Proceed to next source cell.
@@ -354,7 +360,7 @@ void Linear<Map>::TableMigration::run() {
     do {
         if (probeStatus & 1) {
             // End flag is already set, so do nothing.
-            TURF_TRACE(Linear, 19, "[TableMigration::run] already ended", uptr(this), 0);
+            TURF_TRACE(Linear, 20, "[TableMigration::run] already ended", uptr(this), 0);
             return;
         }
     } while (!m_workerStatus.compareExchangeWeak(probeStatus, probeStatus + 2, turf::Relaxed, turf::Relaxed));
@@ -367,7 +373,7 @@ void Linear<Map>::TableMigration::run() {
         // Loop over all migration units in this source table.
         for (;;) {
             if (m_workerStatus.load(turf::Relaxed) & 1) {
-                TURF_TRACE(Linear, 20, "[TableMigration::run] detected end flag set", uptr(this), 0);
+                TURF_TRACE(Linear, 21, "[TableMigration::run] detected end flag set", uptr(this), 0);
                 goto endMigration;
             }
             ureg startIdx = source.sourceIndex.fetchAdd(TableMigrationUnitSize, turf::Relaxed);
@@ -380,14 +386,14 @@ void Linear<Map>::TableMigration::run() {
                 // No other thread can declare the migration successful at this point, because *this* unit will never complete,
                 // hence m_unitsRemaining won't reach zero.
                 // However, multiple threads can independently detect a failed migration at the same time.
-                TURF_TRACE(Linear, 21, "[TableMigration::run] destination overflow", uptr(source.table), uptr(startIdx));
+                TURF_TRACE(Linear, 22, "[TableMigration::run] destination overflow", uptr(source.table), uptr(startIdx));
                 // The reason we store overflowed in a shared variable is because we can must flush all the worker threads before
                 // we can safely deal with the overflow. Therefore, the thread that detects the failure is often different from
                 // the thread
                 // that deals with it.
                 bool oldOverflowed = m_overflowed.exchange(overflowed, turf::Relaxed);
                 if (oldOverflowed)
-                    TURF_TRACE(Linear, 22, "[TableMigration::run] race to set m_overflowed", uptr(overflowed),
+                    TURF_TRACE(Linear, 23, "[TableMigration::run] race to set m_overflowed", uptr(overflowed),
                                uptr(oldOverflowed));
                 m_workerStatus.fetchOr(1, turf::Relaxed);
                 goto endMigration;
@@ -402,7 +408,7 @@ void Linear<Map>::TableMigration::run() {
             }
         }
     }
-    TURF_TRACE(Linear, 23, "[TableMigration::run] out of migration units", uptr(this), 0);
+    TURF_TRACE(Linear, 24, "[TableMigration::run] out of migration units", uptr(this), 0);
 
 endMigration:
     // Decrement the shared # of workers.
@@ -410,7 +416,7 @@ endMigration:
         2, turf::AcquireRelease); // AcquireRelease makes all previous writes visible to the last worker thread.
     if (probeStatus >= 4) {
         // There are other workers remaining. Return here so that only the very last worker will proceed.
-        TURF_TRACE(Linear, 24, "[TableMigration::run] not the last worker", uptr(this), uptr(probeStatus));
+        TURF_TRACE(Linear, 25, "[TableMigration::run] not the last worker", uptr(this), uptr(probeStatus));
         return;
     }
 
@@ -429,7 +435,7 @@ endMigration:
         turf::LockGuard<turf::Mutex> guard(origTable->mutex);
         SimpleJobCoordinator::Job* checkedJob = origTable->jobCoordinator.loadConsume();
         if (checkedJob != this) {
-            TURF_TRACE(Linear, 25, "[TableMigration::run] a new TableMigration was already started", uptr(origTable),
+            TURF_TRACE(Linear, 26, "[TableMigration::run] a new TableMigration was already started", uptr(origTable),
                        uptr(checkedJob));
         } else {
             TableMigration* migration = TableMigration::create(m_map, m_numSources + 1);

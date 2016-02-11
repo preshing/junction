@@ -96,6 +96,7 @@ public:
             : m_map(map), m_table(map.m_root.load(turf::Consume)), m_value(Value(ValueTraits::NullValue)) {
             TURF_TRACE(ConcurrentMap_Linear, 2, "[Mutator] insert constructor called", uptr(m_table), uptr(key));
             Hash hash = KeyTraits::hash(key);
+            bool mustDouble = false;
             for (;;) {
                 m_table = m_map.m_root.load(turf::Consume);
                 switch (Details::insert(hash, m_table, m_cell)) { // Modifies m_cell
@@ -114,12 +115,14 @@ public:
                     return; // Found an existing value
                 }
                 case Details::InsertResult_Overflow: {
-                    Details::beginTableMigration(m_map, m_table);
+                    Details::beginTableMigration(m_map, m_table, mustDouble);
                     break;
                 }
                 }
                 // A migration has been started (either by us, or another thread). Participate until it's complete.
                 m_table->jobCoordinator.participate();
+                // If we still overflow after this, avoid an infinite loop by forcing the next table to double.
+                mustDouble = true;
                 // Try again using the latest root.
             }
         }
@@ -134,6 +137,7 @@ public:
             TURF_ASSERT(desired != Value(ValueTraits::NullValue));
             TURF_ASSERT(m_cell); // Cell must have been found or inserted
             TURF_TRACE(ConcurrentMap_Linear, 4, "[Mutator::exchangeValue] called", uptr(m_table), uptr(m_value));
+            bool mustDouble = false;
             for (;;) {
                 Value oldValue = m_value;
                 if (m_cell->value.compareExchangeStrong(m_value, desired, turf::ConsumeRelease)) {
@@ -177,9 +181,11 @@ public:
                         goto breakOuter;
                     case Details::InsertResult_Overflow:
                         TURF_TRACE(ConcurrentMap_Linear, 10, "[Mutator::exchangeValue] overflow after redirect", uptr(m_table), 0);
-                        Details::beginTableMigration(m_map, m_table);
+                        Details::beginTableMigration(m_map, m_table, mustDouble);
                         break;
                     }
+                    // If we still overflow after this, avoid an infinite loop by forcing the next table to double.
+                    mustDouble = true;
                     // We were redirected... again
                 }
             breakOuter:;
