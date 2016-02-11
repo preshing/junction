@@ -251,7 +251,7 @@ public:
     // Lookup without creating a temporary Mutator.
     Value get(Key key) {
         Hash hash = KeyTraits::hash(key);
-        TURF_TRACE(ConcurrentMap_LeapFrog, 15, "[get] called", uptr(hash), 0);
+        TURF_TRACE(ConcurrentMap_LeapFrog, 15, "[get] called", uptr(this), uptr(hash));
         for (;;) {
             typename Details::Table* table = m_root.load(turf::Consume);
             typename Details::Cell* cell = Details::find(hash, table);

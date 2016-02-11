@@ -696,10 +696,8 @@ void Grampa<Map>::TableMigration::run() {
                 // However, multiple threads can independently detect a failed migration at the same time.
                 TURF_TRACE(Grampa, 28, "[TableMigration::run] destination overflow", uptr(source.table), uptr(startIdx));
                 // The reason we store overflowTableIndex in a shared variable is because we must flush all the worker threads
-                // before
-                // we can safely deal with the overflow. Therefore, the thread that detects the failure is often different from
-                // the thread
-                // that deals with it.
+                // before we can safely deal with the overflow. Therefore, the thread that detects the failure is often
+                // different from the thread that deals with it.
                 // Store overflowTableIndex unconditionally; racing writes should be rare, and it doesn't matter which one wins.
                 sreg oldIndex = m_overflowTableIndex.exchange(overflowTableIndex, turf::Relaxed);
                 if (oldIndex >= 0)

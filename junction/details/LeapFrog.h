@@ -24,6 +24,9 @@
 #include <junction/SimpleJobCoordinator.h>
 #include <junction/QSBR.h>
 
+// Enable this to force migration overflows (for test purposes):
+#define JUNCTION_LEAPFROG_FORCE_MIGRATION_OVERFLOWS 0
+
 namespace junction {
 namespace details {
 
@@ -349,7 +352,15 @@ struct LeapFrog {
         }
         float inUseRatio = float(inUseCells) / CellsInUseSample;
         float estimatedInUse = (sizeMask + 1) * inUseRatio;
-        ureg nextTableSize = turf::util::roundUpPowerOf2(ureg(estimatedInUse * 2));
+#if JUNCTION_LEAPFROG_FORCE_MIGRATION_OVERFLOWS
+        // Periodically underestimate the number of cells in use.
+        // This exercises the code that handles overflow during migration.
+        static ureg counter = 1;
+        if ((++counter & 3) == 0) {
+            estimatedInUse /= 4;
+        }
+#endif
+        ureg nextTableSize = turf::util::max(InitialSize, turf::util::roundUpPowerOf2(ureg(estimatedInUse * 2)));
         beginTableMigrationToSize(map, table, nextTableSize);
     }
 }; // LeapFrog
