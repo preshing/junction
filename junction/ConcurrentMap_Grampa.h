@@ -335,6 +335,7 @@ public:
 
         Value exchangeValue(Value desired) {
             TURF_ASSERT(desired != Value(ValueTraits::NullValue));
+            TURF_ASSERT(desired != Value(ValueTraits::Redirect));
             TURF_ASSERT(m_cell); // Cell must have been found or inserted
             TURF_TRACE(ConcurrentMap_Grampa, 14, "[Mutator::exchangeValue] called", uptr(m_table), uptr(m_value));
             for (;;) {

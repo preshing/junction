@@ -16,7 +16,7 @@
 #include <junction/Core.h>
 
 #ifndef JUNCTION_IMPL_MAPADAPTER_PATH
-#define JUNCTION_IMPL_MAPADAPTER_PATH "junction/extra/impl/MapAdapter_Grampa.h"
+#define JUNCTION_IMPL_MAPADAPTER_PATH "junction/extra/impl/MapAdapter_Linear.h"
 #endif
 
 #include JUNCTION_IMPL_MAPADAPTER_PATH
