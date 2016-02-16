@@ -44,10 +44,10 @@ public:
     void run(ureg threadIndex) {
         u32 x = X;
         u32 y = Y;
-        while ((g_random[threadIndex].next32() & 0x1ff) != 0) { // Random delay
+        while ((g_random[threadIndex].next32() & 0x7f) != 0) { // Random delay
         }
         if (threadIndex == 0) {
-            // We store 2 because 1 is reserved for the default Redirect value.
+            // We store 2 because Junction maps reserve 1 for the default Redirect value.
             // The default can be overridden, but this is easier.
             m_map.insert(x, (void*) 2);
             m_r1 = (uptr) m_map.get(y);
@@ -87,18 +87,18 @@ public:
         }
         switch (threadIndex) {
         case 0:
-            // We store 2 because 1 is reserved for the default Redirect value.
+            // We store 2 because Junction maps reserve 1 for the default Redirect value.
             // The default can be overridden, but this is easier.
             m_map.insert(x, (void*) 2);
             break;
             
         case 1:
-            m_r1 = (uptr) m_map.get(x);
-            m_r2 = (uptr) m_map.get(y);
+            m_map.insert(y, (void*) 2);
             break;
             
         case 2:
-            m_map.insert(y, (void*) 2);
+            m_r1 = (uptr) m_map.get(x);
+            m_r2 = (uptr) m_map.get(y);
             break;
             
         case 3:
@@ -111,22 +111,7 @@ public:
 
 int main() {
 #if 1
-    turf::extra::JobDispatcher dispatcher(4);
-    MapAdapter adapter(4);
-
-    int nonLinearizable = 0;
-    for (int iterations = 0;; iterations++) {
-        IRIWTest test;
-        dispatcher.kick(&IRIWTest::run, test);
-//        printf("%d %d %d %d\n", test.m_r1, test.m_r2, test.m_r3, test.m_r4);
-        if ((test.m_r1 == 2 && test.m_r2 == 0 && test.m_r3 == 2 && test.m_r4 == 0)
-            || (test.m_r1 == 0 && test.m_r2 == 2 && test.m_r3 == 0 && test.m_r4 == 2))
-            nonLinearizable++;
-        if (iterations % 10000 == 0) {
-            printf("%d non-linearizable histories after %d iterations\n", nonLinearizable, iterations);
-        }
-    }
-#else
+    // Run StoreBufferTest
     turf::extra::JobDispatcher dispatcher(2);
     MapAdapter adapter(2);
 
@@ -134,8 +119,25 @@ int main() {
     for (u64 iterations = 0;; iterations++) {
         StoreBufferTest test;
         dispatcher.kick(&StoreBufferTest::run, test);
-        if (test.m_r1 == 0 && test.m_r2 == 0)
+        if (test.m_r1 == 0 && test.m_r2 == 0) {
             nonLinearizable++;
+        }
+        if (iterations % 10000 == 0) {
+            printf("%" TURF_U64D " non-linearizable histories after %" TURF_U64D " iterations\n", nonLinearizable, iterations);
+        }
+    }
+#else
+    // Run IRIWTest
+    turf::extra::JobDispatcher dispatcher(4);
+    MapAdapter adapter(4);
+
+    u64 nonLinearizable = 0;
+    for (u64 iterations = 0;; iterations++) {
+        IRIWTest test;
+        dispatcher.kick(&IRIWTest::run, test);
+        if (test.m_r1 == 2 && test.m_r2 == 0 && test.m_r3 == 2 && test.m_r4 == 0) {
+            nonLinearizable++;
+        }
         if (iterations % 10000 == 0) {
             printf("%" TURF_U64D " non-linearizable histories after %" TURF_U64D " iterations\n", nonLinearizable, iterations);
         }

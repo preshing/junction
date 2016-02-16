@@ -7,4 +7,5 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     project(${SAMPLE_NAME})
 endif()    
 
+set(JUNCTION_USERCONFIG "junction_userconfig.h.in" CACHE STRING "Custom config for ${SAMPLE_NAME}")
 include(../AddSample.cmake)
