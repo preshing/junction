@@ -97,8 +97,8 @@ public:
         // Must be called when there are no concurrent readers or writers
         for (ureg idx = 0; idx <= m_sizeMask; idx++) {
             Cell* cell = m_cells + idx;
-            cell->key = KeyTraits::NullKey;
-            cell->value = Value(ValueTraits::NullValue);
+            cell->key.storeNonatomic(KeyTraits::NullKey);
+            cell->value.storeNonatomic(Value(ValueTraits::NullValue));
         }
     }
 };
