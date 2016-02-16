@@ -74,7 +74,7 @@ public:
 
         // Constructor: Find existing cell
         Mutator(ConcurrentMap_Linear& map, Key key, bool) : m_map(map), m_value(Value(ValueTraits::NullValue)) {
-            TURF_TRACE(ConcurrentMap_Linear, 0, "[Mutator] find constructor called", uptr(m_table), uptr(key));
+            TURF_TRACE(ConcurrentMap_Linear, 0, "[Mutator] find constructor called", uptr(0), uptr(key));
             Hash hash = KeyTraits::hash(key);
             for (;;) {
                 m_table = m_map.m_root.load(turf::Consume);
@@ -92,9 +92,8 @@ public:
         }
 
         // Constructor: Insert cell
-        Mutator(ConcurrentMap_Linear& map, Key key)
-            : m_map(map), m_table(map.m_root.load(turf::Consume)), m_value(Value(ValueTraits::NullValue)) {
-            TURF_TRACE(ConcurrentMap_Linear, 2, "[Mutator] insert constructor called", uptr(m_table), uptr(key));
+        Mutator(ConcurrentMap_Linear& map, Key key) : m_map(map), m_value(Value(ValueTraits::NullValue)) {
+            TURF_TRACE(ConcurrentMap_Linear, 2, "[Mutator] insert constructor called", uptr(0), uptr(key));
             Hash hash = KeyTraits::hash(key);
             bool mustDouble = false;
             for (;;) {
@@ -321,7 +320,7 @@ public:
             }
             // That's the end of the map.
             m_hash = KeyTraits::NullHash;
-            m_value = ValueTraits::NullValue;
+            m_value = Value(ValueTraits::NullValue);
         }
 
         bool isValid() const {
