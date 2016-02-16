@@ -262,7 +262,6 @@ template <class Map>
 bool Linear<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
     ureg srcSizeMask = srcTable->sizeMask;
     ureg endIdx = turf::util::min(startIdx + TableMigrationUnitSize, srcSizeMask + 1);
-    sreg valuesMigrated = 0;
     // Iterate over source range.
     for (ureg srcIdx = startIdx; srcIdx < endIdx; srcIdx++) {
         Cell* srcCell = srcTable->getCells() + (srcIdx & srcSizeMask);

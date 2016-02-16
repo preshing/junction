@@ -22,6 +22,7 @@ template <class T>
 struct DefaultKeyTraits {
     typedef T Key;
     typedef typename turf::util::BestFit<T>::Unsigned Hash;
+    static const Key NullKey = Key(0);
     static const Hash NullHash = Hash(0);
     static Hash hash(T key) {
         return turf::util::avalanche(Hash(key));
