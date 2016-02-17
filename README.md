@@ -96,6 +96,17 @@ Many header files in Turf, and some in Junction, are configurable using preproce
 
 The `JUNCTION_USERCONFIG` variable works in a similar way. As an example, take a look at the Python script `junction/samples/MapScalabilityTests/TestAllMaps.py`. This script invokes `cmake` several times, passing a different `junction_userconfig.h.in` file each time. That's how it builds the same test application using different map implementations.
 
+## Rules and Behavior
+
+A Junction map is a lot like a big array of `std::atomic<>` variables, where the key is an index into the array, stores use `memory_order_release`, and loads use `memory_order_consume`.
+
+More precisely, the following rules apply to Junction's Linear, LeapFrog and Grampa maps:
+
+* All of their member functions, together with their `Mutator` member functions, are atomic with respect to each other, so you can safely call them from any thread without mutual exclusion.
+* If an `insert` [happens before](http://preshing.com/20130702/the-happens-before-relation/) a `get` with the same key, the `get` will return the value it inserted, except if another operation changes the value in between. Any [synchronizing operation](http://preshing.com/20130823/the-synchronizes-with-relation/) will establish this relationship.
+* `insert` is a [release](http://preshing.com/20120913/acquire-and-release-semantics/) operation and `get` is a [consume](http://preshing.com/20140709/the-purpose-of-memory_order_consume-in-cpp11/) operation, so you can safely pass non-atomic information between threads using a pointer.
+* In the current version, you must not insert while concurrently using an `Iterator`.
+
 ## Feedback
 
 If you have any feedback on improving these steps, feel free to [open an issue](https://github.com/preshing/junction/issues) on GitHub, or send a direct message using the [contact form](http://preshing.com/contact/) on my blog.
