@@ -10,8 +10,8 @@
   See the LICENSE file for more information.
 ------------------------------------------------------------------------*/
 
-#ifndef JUNCTION_CONCURRENTMAP_SIMPLERELAXED_H
-#define JUNCTION_CONCURRENTMAP_SIMPLERELAXED_H
+#ifndef JUNCTION_CONCURRENTMAP_CRUDE_H
+#define JUNCTION_CONCURRENTMAP_CRUDE_H
 
 #include <junction/Core.h>
 #include <junction/MapTraits.h>
@@ -19,7 +19,7 @@
 namespace junction {
 
 template <typename K, typename V, class KT = DefaultKeyTraits<K>, class VT = DefaultValueTraits<V> >
-class ConcurrentMap_SimpleRelaxed {
+class ConcurrentMap_Crude {
 public:
     typedef K Key;
     typedef V Value;
@@ -38,14 +38,14 @@ private:
     ureg m_sizeMask;
 
 public:
-    ConcurrentMap_SimpleRelaxed(ureg capacity = DefaultCapacity) {
+    ConcurrentMap_Crude(ureg capacity = DefaultCapacity) {
         TURF_ASSERT(turf::util::isPowerOf2(capacity));
         m_sizeMask = capacity - 1;
         m_cells = new Cell[capacity];
         clear();
     }
 
-    ~ConcurrentMap_SimpleRelaxed() {
+    ~ConcurrentMap_Crude() {
         delete[] m_cells;
     }
 
@@ -105,4 +105,4 @@ public:
 
 } // namespace junction
 
-#endif // JUNCTION_CONCURRENTMAP_SIMPLERELAXED_H
+#endif // JUNCTION_CONCURRENTMAP_CRUDE_H

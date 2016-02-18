@@ -10,11 +10,11 @@
   See the LICENSE file for more information.
 ------------------------------------------------------------------------*/
 
-#ifndef JUNCTION_EXTRA_IMPL_MAPADAPTER_SIMPLERELAXED_H
-#define JUNCTION_EXTRA_IMPL_MAPADAPTER_SIMPLERELAXED_H
+#ifndef JUNCTION_EXTRA_IMPL_MAPADAPTER_CRUDE_H
+#define JUNCTION_EXTRA_IMPL_MAPADAPTER_CRUDE_H
 
 #include <junction/Core.h>
-#include <junction/ConcurrentMap_SimpleRelaxed.h>
+#include <junction/ConcurrentMap_Crude.h>
 #include <turf/Util.h>
 
 namespace junction {
@@ -22,7 +22,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Junction SimpleRelaxed map";
+    static TURF_CONSTEXPR const char* MapName = "Junction Crude map";
 
     MapAdapter(ureg) {
     }
@@ -42,7 +42,7 @@ public:
         }
     };
 
-    typedef ConcurrentMap_SimpleRelaxed<u32, void*> Map;
+    typedef ConcurrentMap_Crude<u32, void*> Map;
 
     static ureg getInitialCapacity(ureg maxPopulation) {
         return turf::util::roundUpPowerOf2(ureg(maxPopulation * 1.25f));
@@ -52,4 +52,4 @@ public:
 } // namespace extra
 } // namespace junction
 
-#endif // JUNCTION_EXTRA_IMPL_MAPADAPTER_SIMPLERELAXED_H
+#endif // JUNCTION_EXTRA_IMPL_MAPADAPTER_CRUDE_H
