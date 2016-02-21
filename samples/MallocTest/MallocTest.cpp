@@ -28,7 +28,7 @@ int main() {
         std::cout << "Population=" << population << ", inUse=" << TURF_HEAP.getInUseBytes() << std::endl;
 #endif
         for (; population < i * 5000; population++)
-            map.insert(population + 1, (void*) ((population << 2) | 3));
+            map.set(population + 1, (void*) ((population << 2) | 3));
     }
 
     return 0;

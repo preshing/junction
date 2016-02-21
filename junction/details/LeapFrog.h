@@ -189,8 +189,8 @@ struct LeapFrog {
 
     // FIXME: Possible optimization: Dedicated insert for migration? It wouldn't check for InsertResult_AlreadyFound.
     enum InsertResult { InsertResult_AlreadyFound, InsertResult_InsertedNew, InsertResult_Overflow };
-    static InsertResult insert(Hash hash, Table* table, Cell*& cell, ureg& overflowIdx) {
-        TURF_TRACE(LeapFrog, 3, "[insert] called", uptr(table), hash);
+    static InsertResult insertOrFind(Hash hash, Table* table, Cell*& cell, ureg& overflowIdx) {
+        TURF_TRACE(LeapFrog, 3, "[insertOrFind] called", uptr(table), hash);
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
@@ -202,16 +202,16 @@ struct LeapFrog {
         Hash probeHash = cell->hash.load(turf::Relaxed);
         if (probeHash == KeyTraits::NullHash) {
             if (cell->hash.compareExchangeStrong(probeHash, hash, turf::Relaxed)) {
-                TURF_TRACE(LeapFrog, 4, "[insert] reserved first cell", uptr(table), idx);
+                TURF_TRACE(LeapFrog, 4, "[insertOrFind] reserved first cell", uptr(table), idx);
                 // There are no links to set. We're done.
                 return InsertResult_InsertedNew;
             } else {
-                TURF_TRACE(LeapFrog, 5, "[insert] race to reserve first cell", uptr(table), idx);
+                TURF_TRACE(LeapFrog, 5, "[insertOrFind] race to reserve first cell", uptr(table), idx);
                 // Fall through to check if it was the same hash...
             }
         }
         if (probeHash == hash) {
-            TURF_TRACE(LeapFrog, 6, "[insert] found in first cell", uptr(table), idx);
+            TURF_TRACE(LeapFrog, 6, "[insertOrFind] found in first cell", uptr(table), idx);
             return InsertResult_AlreadyFound;
         }
 
@@ -234,14 +234,14 @@ struct LeapFrog {
                     // Cell was linked, but hash is not visible yet.
                     // We could avoid this case (and guarantee it's visible) using acquire & release, but instead,
                     // just poll until it becomes visible.
-                    TURF_TRACE(LeapFrog, 7, "[insert] race to read hash", uptr(table), idx);
+                    TURF_TRACE(LeapFrog, 7, "[insertOrFind] race to read hash", uptr(table), idx);
                     do {
                         probeHash = cell->hash.load(turf::Acquire);
                     } while (probeHash == KeyTraits::NullHash);
                 }
                 TURF_ASSERT(((probeHash ^ hash) & sizeMask) == 0); // Only hashes in same bucket can be linked
                 if (probeHash == hash) {
-                    TURF_TRACE(LeapFrog, 8, "[insert] found in probe chain", uptr(table), idx);
+                    TURF_TRACE(LeapFrog, 8, "[insertOrFind] found in probe chain", uptr(table), idx);
                     return InsertResult_AlreadyFound;
                 }
             } else {
@@ -259,7 +259,7 @@ struct LeapFrog {
                         // It's an empty cell. Try to reserve it.
                         if (cell->hash.compareExchangeStrong(probeHash, hash, turf::Relaxed)) {
                             // Success. We've reserved the cell. Link it to previous cell in same bucket.
-                            TURF_TRACE(LeapFrog, 9, "[insert] reserved cell", uptr(table), idx);
+                            TURF_TRACE(LeapFrog, 9, "[insertOrFind] reserved cell", uptr(table), idx);
                             TURF_ASSERT(probeDelta == 0);
                             u8 desiredDelta = idx - prevLinkIdx;
 #if TURF_WITH_ASSERTS
@@ -270,19 +270,19 @@ struct LeapFrog {
 #endif
                             return InsertResult_InsertedNew;
                         } else {
-                            TURF_TRACE(LeapFrog, 10, "[insert] race to reserve cell", uptr(table), idx);
+                            TURF_TRACE(LeapFrog, 10, "[insertOrFind] race to reserve cell", uptr(table), idx);
                             // Fall through to check if it's the same hash...
                         }
                     }
                     Hash x = (probeHash ^ hash);
                     // Check for same hash.
                     if (!x) {
-                        TURF_TRACE(LeapFrog, 11, "[insert] found outside probe chain", uptr(table), idx);
+                        TURF_TRACE(LeapFrog, 11, "[insertOrFind] found outside probe chain", uptr(table), idx);
                         return InsertResult_AlreadyFound;
                     }
                     // Check for same bucket.
                     if ((x & sizeMask) == 0) {
-                        TURF_TRACE(LeapFrog, 12, "[insert] found late-arriving cell in same bucket", uptr(table), idx);
+                        TURF_TRACE(LeapFrog, 12, "[insertOrFind] found late-arriving cell in same bucket", uptr(table), idx);
                         // Attempt to set the link on behalf of the late-arriving cell.
                         // This is usually redundant, but if we don't attempt to set the late-arriving cell's link here,
                         // there's no guarantee that our own link chain will be well-formed by the time this function returns.
@@ -292,7 +292,7 @@ struct LeapFrog {
                         probeDelta = prevLink->exchange(desiredDelta, turf::Relaxed);
                         TURF_ASSERT(probeDelta == 0 || probeDelta == desiredDelta);
                         if (probeDelta == 0)
-                            TURF_TRACE(LeapFrog, 13, "[insert] set link on behalf of late-arriving cell", uptr(table), idx);
+                            TURF_TRACE(LeapFrog, 13, "[insertOrFind] set link on behalf of late-arriving cell", uptr(table), idx);
 #else
                         prevLink->store(desiredDelta, turf::Relaxed);
 #endif
@@ -302,7 +302,7 @@ struct LeapFrog {
                 }
                 // Table is too full to insert.
                 overflowIdx = idx + 1;
-                TURF_TRACE(LeapFrog, 14, "[insert] overflow", uptr(table), overflowIdx);
+                TURF_TRACE(LeapFrog, 14, "[insertOrFind] overflow", uptr(table), overflowIdx);
                 return InsertResult_Overflow;
             }
         }
@@ -417,7 +417,7 @@ bool LeapFrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx)
                 TURF_ASSERT(srcValue != Value(ValueTraits::Redirect));
                 Cell* dstCell;
                 ureg overflowIdx;
-                InsertResult result = insert(srcHash, m_destination, dstCell, overflowIdx);
+                InsertResult result = insertOrFind(srcHash, m_destination, dstCell, overflowIdx);
                 // During migration, a hash can only exist in one place among all the source tables,
                 // and it is only migrated by one thread. Therefore, the hash will never already exist
                 // in the destination table:

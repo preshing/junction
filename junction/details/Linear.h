@@ -153,8 +153,8 @@ struct Linear {
 
     // FIXME: Possible optimization: Dedicated insert for migration? It wouldn't check for InsertResult_AlreadyFound.
     enum InsertResult { InsertResult_AlreadyFound, InsertResult_InsertedNew, InsertResult_Overflow };
-    static InsertResult insert(Hash hash, Table* table, Cell*& cell) {
-        TURF_TRACE(Linear, 2, "[insert] called", uptr(table), hash);
+    static InsertResult insertOrFind(Hash hash, Table* table, Cell*& cell) {
+        TURF_TRACE(Linear, 2, "[insertOrFind] called", uptr(table), hash);
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
@@ -165,7 +165,7 @@ struct Linear {
             // Load the existing hash.
             Hash probeHash = cell->hash.load(turf::Relaxed);
             if (probeHash == hash) {
-                TURF_TRACE(Linear, 3, "[insert] found existing cell", uptr(table), idx);
+                TURF_TRACE(Linear, 3, "[insertOrFind] found existing cell", uptr(table), idx);
                 return InsertResult_AlreadyFound; // Key found in table. Return the existing cell.
             }
             if (probeHash == KeyTraits::NullHash) {
@@ -174,7 +174,7 @@ struct Linear {
                 s32 prevCellsRemaining = table->cellsRemaining.fetchSub(1, turf::Relaxed);
                 if (prevCellsRemaining <= 0) {
                     // Table is overpopulated.
-                    TURF_TRACE(Linear, 4, "[insert] ran out of cellsRemaining", prevCellsRemaining, 0);
+                    TURF_TRACE(Linear, 4, "[insertOrFind] ran out of cellsRemaining", prevCellsRemaining, 0);
                     table->cellsRemaining.fetchAdd(1, turf::Relaxed); // Undo cellsRemaining decrement
                     return InsertResult_Overflow;
                 }
@@ -182,14 +182,14 @@ struct Linear {
                 Hash prevHash = cell->hash.compareExchange(KeyTraits::NullHash, hash, turf::Relaxed);
                 if (prevHash == KeyTraits::NullHash) {
                     // Success. We reserved a new cell.
-                    TURF_TRACE(Linear, 5, "[insert] reserved cell", prevCellsRemaining, idx);
+                    TURF_TRACE(Linear, 5, "[insertOrFind] reserved cell", prevCellsRemaining, idx);
                     return InsertResult_InsertedNew;
                 }
                 // There was a race and another thread reserved that cell from under us.
-                TURF_TRACE(Linear, 6, "[insert] detected race to reserve cell", ureg(hash), idx);
+                TURF_TRACE(Linear, 6, "[insertOrFind] detected race to reserve cell", ureg(hash), idx);
                 table->cellsRemaining.fetchAdd(1, turf::Relaxed); // Undo cellsRemaining decrement
                 if (prevHash == hash) {
-                    TURF_TRACE(Linear, 7, "[insert] race reserved same hash", ureg(hash), idx);
+                    TURF_TRACE(Linear, 7, "[insertOrFind] race reserved same hash", ureg(hash), idx);
                     return InsertResult_AlreadyFound; // They inserted the same key. Return the existing cell.
                 }
             }
@@ -308,7 +308,7 @@ bool Linear<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
                 TURF_ASSERT(srcValue != Value(ValueTraits::NullValue));
                 TURF_ASSERT(srcValue != Value(ValueTraits::Redirect));
                 Cell* dstCell;
-                InsertResult result = insert(srcHash, m_destination, dstCell);
+                InsertResult result = insertOrFind(srcHash, m_destination, dstCell);
                 // During migration, a hash can only exist in one place among all the source tables,
                 // and it is only migrated by one thread. Therefore, the hash will never already exist
                 // in the destination table:

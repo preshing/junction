@@ -49,10 +49,10 @@ public:
         if (threadIndex == 0) {
             // We store 2 because Junction maps reserve 1 for the default Redirect value.
             // The default can be overridden, but this is easier.
-            m_map.insert(x, (void*) 2);
+            m_map.set(x, (void*) 2);
             m_r1 = (uptr) m_map.get(y);
         } else {
-            m_map.insert(y, (void*) 2);
+            m_map.set(y, (void*) 2);
             m_r2 = (uptr) m_map.get(x);
         }
     }
@@ -89,11 +89,11 @@ public:
         case 0:
             // We store 2 because Junction maps reserve 1 for the default Redirect value.
             // The default can be overridden, but this is easier.
-            m_map.insert(x, (void*) 2);
+            m_map.set(x, (void*) 2);
             break;
             
         case 1:
-            m_map.insert(y, (void*) 2);
+            m_map.set(y, (void*) 2);
             break;
             
         case 2:

@@ -62,7 +62,7 @@ public:
         Map(ureg capacity) : m_map(capacity, 3) {
         }
 
-        void insert(u32 key, void* value) {
+        void set(u32 key, void* value) {
             m_map.insert(key, (u64) value);
         }
 

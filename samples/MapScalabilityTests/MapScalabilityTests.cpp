@@ -103,7 +103,7 @@ public:
         for (ureg i = 0; i < m_shared.numKeysPerThread; i++) {
             u32 key = m_addIndex * Prime;
             if (key >= 2)
-                map->insert(key, (void*) uptr(key));
+                map->set(key, (void*) uptr(key));
             if (++m_addIndex == m_rangeHi)
                 m_addIndex = m_rangeLo;
         }
@@ -130,7 +130,7 @@ public:
                 break;
             u32 key = m_addIndex * Prime;
             if (key >= 2) {
-                map->insert(key, (void*) uptr(key));
+                map->set(key, (void*) uptr(key));
                 stats.mapOpsDone++;
             }
             if (++m_addIndex == m_rangeHi)

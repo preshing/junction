@@ -189,7 +189,7 @@ public:
         return iter.isValid() ? iter.getValue() : NULL;
     }
 
-    Value insert(const Key& key, Value desired) {
+    Value set(const Key& key, Value desired) {
         Iterator iter(*this, key);
         return iter.exchangeValue(desired);
     }

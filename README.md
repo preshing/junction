@@ -102,9 +102,9 @@ The `JUNCTION_USERCONFIG` variable works in a similar way. As an example, take a
 A Junction map is a lot like a big array of `std::atomic<>` variables, where the key is an index into the array. More precisely:
 
 * All of a Junction map's member functions, together with its `Mutator` member functions, are atomic with respect to each other, so you can safely call them from any thread without mutual exclusion.
-* If an `insert` [happens before](http://preshing.com/20130702/the-happens-before-relation/) a `get` with the same key, the `get` will return the value it inserted, except if another operation changes the value in between. Any [synchronizing operation](http://preshing.com/20130823/the-synchronizes-with-relation/) will establish this relationship.
-* For Linear, LeapFrog and Grampa maps, `insert` is a [release](http://preshing.com/20120913/acquire-and-release-semantics/) operation and `get` is a [consume](http://preshing.com/20140709/the-purpose-of-memory_order_consume-in-cpp11/) operation, so you can safely pass non-atomic information between threads using a pointer. For Crude maps, all operations are relaxed.
-* In the current version, you must not insert while concurrently using an `Iterator`.
+* If an `set` [happens before](http://preshing.com/20130702/the-happens-before-relation/) a `get` with the same key, the `get` will return the value set, except if another operation changes the value in between. Any [synchronizing operation](http://preshing.com/20130823/the-synchronizes-with-relation/) will establish this relationship.
+* For Linear, LeapFrog and Grampa maps, `set` is a [release](http://preshing.com/20120913/acquire-and-release-semantics/) operation and `get` is a [consume](http://preshing.com/20140709/the-purpose-of-memory_order_consume-in-cpp11/) operation, so you can safely pass non-atomic information between threads using a pointer. For Crude maps, all operations are relaxed.
+* In the current version, you must not set while concurrently using an `Iterator`.
 
 ## Feedback
 

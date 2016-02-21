@@ -91,14 +91,14 @@ public:
             }
         }
 
-        // Constructor: Insert cell
+        // Constructor: Insert or find cell
         Mutator(ConcurrentMap_LeapFrog& map, Key key) : m_map(map), m_value(Value(ValueTraits::NullValue)) {
-            TURF_TRACE(ConcurrentMap_LeapFrog, 2, "[Mutator] insert constructor called", uptr(0), uptr(key));
+            TURF_TRACE(ConcurrentMap_LeapFrog, 2, "[Mutator] insertOrFind constructor called", uptr(0), uptr(key));
             Hash hash = KeyTraits::hash(key);
             for (;;) {
                 m_table = m_map.m_root.load(turf::Consume);
                 ureg overflowIdx;
-                switch (Details::insert(hash, m_table, m_cell, overflowIdx)) { // Modifies m_cell
+                switch (Details::insertOrFind(hash, m_table, m_cell, overflowIdx)) { // Modifies m_cell
                 case Details::InsertResult_InsertedNew: {
                     // We've inserted a new cell. Don't load m_cell->value.
                     return;
@@ -108,7 +108,7 @@ public:
                     m_value = m_cell->value.load(turf::Consume);
                     if (m_value == Value(ValueTraits::Redirect)) {
                         // We've encountered a Redirect value.
-                        TURF_TRACE(ConcurrentMap_LeapFrog, 3, "[Mutator] insert was redirected", uptr(m_table), uptr(m_value));
+                        TURF_TRACE(ConcurrentMap_LeapFrog, 3, "[Mutator] insertOrFind was redirected", uptr(m_table), uptr(m_value));
                         break; // Help finish the migration.
                     }
                     return; // Found an existing value
@@ -167,7 +167,7 @@ public:
                     m_table = m_map.m_root.load(turf::Consume);
                     m_value = Value(ValueTraits::NullValue);
                     ureg overflowIdx;
-                    switch (Details::insert(hash, m_table, m_cell, overflowIdx)) { // Modifies m_cell
+                    switch (Details::insertOrFind(hash, m_table, m_cell, overflowIdx)) { // Modifies m_cell
                     case Details::InsertResult_AlreadyFound:
                         m_value = m_cell->value.load(turf::Consume);
                         if (m_value == Value(ValueTraits::Redirect)) {
@@ -240,7 +240,7 @@ public:
         }
     };
 
-    Mutator insert(Key key) {
+    Mutator insertOrFind(Key key) {
         return Mutator(*this, key);
     }
 
@@ -267,7 +267,7 @@ public:
         }
     }
 
-    Value insert(Key key, Value desired) {
+    Value set(Key key, Value desired) {
         Mutator iter(*this, key);
         return iter.exchangeValue(desired);
     }

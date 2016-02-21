@@ -69,7 +69,7 @@ public:
             ht_free(m_map);
         }
 
-        void insert(u32 key, void* value) {
+        void set(u32 key, void* value) {
             ht_cas(m_map, key, CAS_EXPECT_WHATEVER, (map_val_t) value);
         }
 
