@@ -114,6 +114,12 @@ public:
                     return; // Found an existing value
                 }
                 case Details::InsertResult_Overflow: {
+                    // Unlike ConcurrentMap_Linear, we don't need to keep track of & pass a "mustDouble" flag.
+                    // Passing overflowIdx is sufficient to prevent an infinite loop here.
+                    // It defines the start of the range of cells to check while estimating total cells in use.
+                    // After the first migration, deleted keys are purged, so if we hit this line during the
+                    // second loop iteration, every cell in the range will be in use, thus the estimate will be 100%.
+                    // (Concurrent deletes could result in further iterations, but it will eventually settle.)
                     Details::beginTableMigration(m_map, m_table, overflowIdx);
                     break;
                 }

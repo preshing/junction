@@ -24,9 +24,6 @@
 #include <junction/SimpleJobCoordinator.h>
 #include <junction/QSBR.h>
 
-// Enable this to force migration overflows (for test purposes):
-#define JUNCTION_LEAPFROG_FORCE_MIGRATION_OVERFLOWS 0
-
 namespace junction {
 namespace details {
 

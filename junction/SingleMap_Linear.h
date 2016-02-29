@@ -33,10 +33,11 @@ private:
     };
 
     Cell* m_cells;
-    u32 m_sizeMask;
-    u32 m_population;
+    ureg m_sizeMask;
+    ureg m_population;
 
     static Cell* createTable(ureg size) {
+        TURF_ASSERT(turf::util::isPowerOf2(size));
         Cell* cells = (Cell*) TURF_HEAP.alloc(sizeof(Cell) * size);
         for (ureg i = 0; i < size; i++)
             new (cells + i) Cell(KeyTraits::NullHash, Value(ValueTraits::NullValue));
@@ -44,6 +45,7 @@ private:
     }
 
     static void destroyTable(Cell* cells, ureg size) {
+        TURF_ASSERT(turf::util::isPowerOf2(size));
         for (ureg i = 0; i < size; i++)
             cells[i].~Cell();
         TURF_HEAP.free(cells);
@@ -53,8 +55,7 @@ private:
         return (population * 4) >= (sizeMask * 3);
     }
 
-    void migrateToNewTable(size_t desiredSize) {
-        TURF_ASSERT(turf::util::isPowerOf2(desiredSize));
+    void migrateToNewTable(ureg desiredSize) {
         Cell* srcCells = m_cells;
         ureg srcSize = m_sizeMask + 1;
         m_cells = createTable(desiredSize);
@@ -75,22 +76,21 @@ private:
     }
 
 public:
-    SingleMap_Linear(size_t initialSize = 8) : m_cells(createTable(initialSize)), m_sizeMask(initialSize - 1), m_population(0) {
-        TURF_ASSERT(turf::util::isPowerOf2(initialSize));
+    SingleMap_Linear(ureg initialSize = 8) : m_cells(createTable(initialSize)), m_sizeMask(initialSize - 1), m_population(0) {
     }
 
     ~SingleMap_Linear() {
         destroyTable(m_cells, m_sizeMask + 1);
     }
 
-    class Iterator {
+    class Mutator {
     private:
         friend class SingleMap_Linear;
         SingleMap_Linear& m_map;
         Cell* m_cell;
 
         // Constructor: Find without insert
-        Iterator(SingleMap_Linear& map, Key key, bool) : m_map(map) {
+        Mutator(SingleMap_Linear& map, Key key, bool) : m_map(map) {
             Hash hash = KeyTraits::hash(key);
             TURF_ASSERT(hash != KeyTraits::NullHash);
             for (ureg idx = hash;; idx++) {
@@ -106,7 +106,7 @@ public:
         }
 
         // Constructor: Find with insert
-        Iterator(SingleMap_Linear& map, Key key) : m_map(map) {
+        Mutator(SingleMap_Linear& map, Key key) : m_map(map) {
             Hash hash = KeyTraits::hash(key);
             TURF_ASSERT(hash != KeyTraits::NullHash);
             for (;;) {
@@ -124,14 +124,14 @@ public:
                     }
                     map.m_population++;
                     m_cell->hash = hash;
-                    TURF_ASSERT(m_cell->value == NULL);
+                    TURF_ASSERT(m_cell->value == Value(ValueTraits::NullValue));
                     return;
                 }
             }
         }
 
-        ~Iterator() {
-            TURF_ASSERT(!m_cell || m_cell->value != NULL); // Forbid leaving a cell half-inserted.
+        ~Mutator() {
+            TURF_ASSERT(!m_cell || m_cell->value != NULL); // In SingleMap_Linear, there are no deleted cells.
         }
 
     public:
@@ -154,7 +154,7 @@ public:
 
         Value erase() {
             TURF_ASSERT(m_cell);
-            TURF_ASSERT(m_cell->value != NULL); // Forbid erasing a cell that's not actually used.
+            TURF_ASSERT(m_cell->value != Value(ValueTraits::NullValue)); // SingleMap_Linear never contains "deleted" cells.
             Value oldValue = m_cell->value;
             // Remove this cell by shuffling neighboring cells so there are no gaps in anyone's probe chain
             ureg cellIdx = m_cell - m_map.m_cells;
@@ -164,7 +164,7 @@ public:
                 if (neighbor->hash == KeyTraits::NullHash) {
                     // Go ahead and clear this cell. It won't break anyone else's probe chain.
                     m_cell->hash = KeyTraits::NullHash;
-                    m_cell->value = NULL;
+                    m_cell->value = Value(ValueTraits::NullValue);
                     m_cell = NULL;
                     m_map.m_population--;
                     return oldValue;
@@ -180,22 +180,22 @@ public:
         }
     };
 
-    Iterator insertOrFindKey(const Key& key) {
-        return Iterator(*this, key);
+    Mutator insertOrFindKey(const Key& key) {
+        return Mutator(*this, key);
     }
 
     Value get(const Key& key) {
-        Iterator iter(*this, key, false);
+        Mutator iter(*this, key, false);
         return iter.isValid() ? iter.getValue() : NULL;
     }
 
     Value set(const Key& key, Value desired) {
-        Iterator iter(*this, key);
+        Mutator iter(*this, key);
         return iter.exchangeValue(desired);
     }
 
     Value erase(const Key& key) {
-        Iterator iter(*this, key, false);
+        Mutator iter(*this, key, false);
         if (iter.isValid())
             return iter.erase();
         return NULL;

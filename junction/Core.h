@@ -30,4 +30,7 @@ namespace junction {
 using namespace turf::intTypes;
 }
 
+// Enable this to force migration overflows (for test purposes):
+#define JUNCTION_LEAPFROG_FORCE_MIGRATION_OVERFLOWS 0
+
 #endif // JUNCTION_CORE_H
