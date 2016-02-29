@@ -15,7 +15,7 @@
 
 #include <junction/Core.h>
 #include <junction/QSBR.h>
-#include <junction/ConcurrentMap_LeapFrog.h>
+#include <junction/ConcurrentMap_Leapfrog.h>
 #include <turf/Util.h>
 
 namespace junction {
@@ -23,7 +23,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Junction LeapFrog map";
+    static TURF_CONSTEXPR const char* MapName = "Junction Leapfrog map";
 
     MapAdapter(ureg) {
     }
@@ -49,7 +49,7 @@ public:
         }
     };
 
-    typedef ConcurrentMap_LeapFrog<u32, void*> Map;
+    typedef ConcurrentMap_Leapfrog<u32, void*> Map;
 
     static ureg getInitialCapacity(ureg maxPopulation) {
         return turf::util::roundUpPowerOf2(maxPopulation / 4);

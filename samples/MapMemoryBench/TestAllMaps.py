@@ -10,7 +10,7 @@ CMAKE = os.getenv('CMAKE', 'cmake')
 ALL_MAPS = [
     ('michael', 'junction/extra/impl/MapAdapter_CDS_Michael.h', ['-DJUNCTION_WITH_CDS=1', '-DTURF_WITH_EXCEPTIONS=1']),
     ('linear', 'junction/extra/impl/MapAdapter_Linear.h', []),
-    ('leapfrog', 'junction/extra/impl/MapAdapter_LeapFrog.h', []),
+    ('leapfrog', 'junction/extra/impl/MapAdapter_Leapfrog.h', []),
     ('grampa', 'junction/extra/impl/MapAdapter_Grampa.h', []),
     ('stdmap', 'junction/extra/impl/MapAdapter_StdMap.h', []),
     ('folly', 'junction/extra/impl/MapAdapter_Folly.h', ['-DJUNCTION_WITH_FOLLY=1', '-DTURF_WITH_EXCEPTIONS=1']),

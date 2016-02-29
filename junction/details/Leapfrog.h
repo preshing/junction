@@ -30,10 +30,10 @@
 namespace junction {
 namespace details {
 
-TURF_TRACE_DECLARE(LeapFrog, 33)
+TURF_TRACE_DECLARE(Leapfrog, 33)
 
 template <class Map>
-struct LeapFrog {
+struct Leapfrog {
     typedef typename Map::Hash Hash;
     typedef typename Map::Value Value;
     typedef typename Map::KeyTraits KeyTraits;
@@ -153,7 +153,7 @@ struct LeapFrog {
     };
 
     static Cell* find(Hash hash, Table* table) {
-        TURF_TRACE(LeapFrog, 0, "[find] called", uptr(table), hash);
+        TURF_TRACE(Leapfrog, 0, "[find] called", uptr(table), hash);
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
@@ -163,7 +163,7 @@ struct LeapFrog {
         Cell* cell = group->cells + (idx & 3);
         Hash probeHash = cell->hash.load(turf::Relaxed);
         if (probeHash == hash) {
-            TURF_TRACE(LeapFrog, 1, "[find] found existing cell optimistically", uptr(table), idx);
+            TURF_TRACE(Leapfrog, 1, "[find] found existing cell optimistically", uptr(table), idx);
             return cell;
         } else if (probeHash == KeyTraits::NullHash) {
             return cell = NULL;
@@ -178,7 +178,7 @@ struct LeapFrog {
             // Note: probeHash might actually be NULL due to memory reordering of a concurrent insert,
             // but we don't check for it. We just follow the probe chain.
             if (probeHash == hash) {
-                TURF_TRACE(LeapFrog, 2, "[find] found existing cell", uptr(table), idx);
+                TURF_TRACE(Leapfrog, 2, "[find] found existing cell", uptr(table), idx);
                 return cell;
             }
             delta = group->deltas[(idx & 3) + 4].load(turf::Relaxed);
@@ -190,7 +190,7 @@ struct LeapFrog {
     // FIXME: Possible optimization: Dedicated insert for migration? It wouldn't check for InsertResult_AlreadyFound.
     enum InsertResult { InsertResult_AlreadyFound, InsertResult_InsertedNew, InsertResult_Overflow };
     static InsertResult insertOrFind(Hash hash, Table* table, Cell*& cell, ureg& overflowIdx) {
-        TURF_TRACE(LeapFrog, 3, "[insertOrFind] called", uptr(table), hash);
+        TURF_TRACE(Leapfrog, 3, "[insertOrFind] called", uptr(table), hash);
         TURF_ASSERT(table);
         TURF_ASSERT(hash != KeyTraits::NullHash);
         ureg sizeMask = table->sizeMask;
@@ -202,16 +202,16 @@ struct LeapFrog {
         Hash probeHash = cell->hash.load(turf::Relaxed);
         if (probeHash == KeyTraits::NullHash) {
             if (cell->hash.compareExchangeStrong(probeHash, hash, turf::Relaxed)) {
-                TURF_TRACE(LeapFrog, 4, "[insertOrFind] reserved first cell", uptr(table), idx);
+                TURF_TRACE(Leapfrog, 4, "[insertOrFind] reserved first cell", uptr(table), idx);
                 // There are no links to set. We're done.
                 return InsertResult_InsertedNew;
             } else {
-                TURF_TRACE(LeapFrog, 5, "[insertOrFind] race to reserve first cell", uptr(table), idx);
+                TURF_TRACE(Leapfrog, 5, "[insertOrFind] race to reserve first cell", uptr(table), idx);
                 // Fall through to check if it was the same hash...
             }
         }
         if (probeHash == hash) {
-            TURF_TRACE(LeapFrog, 6, "[insertOrFind] found in first cell", uptr(table), idx);
+            TURF_TRACE(Leapfrog, 6, "[insertOrFind] found in first cell", uptr(table), idx);
             return InsertResult_AlreadyFound;
         }
 
@@ -234,14 +234,14 @@ struct LeapFrog {
                     // Cell was linked, but hash is not visible yet.
                     // We could avoid this case (and guarantee it's visible) using acquire & release, but instead,
                     // just poll until it becomes visible.
-                    TURF_TRACE(LeapFrog, 7, "[insertOrFind] race to read hash", uptr(table), idx);
+                    TURF_TRACE(Leapfrog, 7, "[insertOrFind] race to read hash", uptr(table), idx);
                     do {
                         probeHash = cell->hash.load(turf::Acquire);
                     } while (probeHash == KeyTraits::NullHash);
                 }
                 TURF_ASSERT(((probeHash ^ hash) & sizeMask) == 0); // Only hashes in same bucket can be linked
                 if (probeHash == hash) {
-                    TURF_TRACE(LeapFrog, 8, "[insertOrFind] found in probe chain", uptr(table), idx);
+                    TURF_TRACE(Leapfrog, 8, "[insertOrFind] found in probe chain", uptr(table), idx);
                     return InsertResult_AlreadyFound;
                 }
             } else {
@@ -259,7 +259,7 @@ struct LeapFrog {
                         // It's an empty cell. Try to reserve it.
                         if (cell->hash.compareExchangeStrong(probeHash, hash, turf::Relaxed)) {
                             // Success. We've reserved the cell. Link it to previous cell in same bucket.
-                            TURF_TRACE(LeapFrog, 9, "[insertOrFind] reserved cell", uptr(table), idx);
+                            TURF_TRACE(Leapfrog, 9, "[insertOrFind] reserved cell", uptr(table), idx);
                             TURF_ASSERT(probeDelta == 0);
                             u8 desiredDelta = idx - prevLinkIdx;
 #if TURF_WITH_ASSERTS
@@ -270,19 +270,19 @@ struct LeapFrog {
 #endif
                             return InsertResult_InsertedNew;
                         } else {
-                            TURF_TRACE(LeapFrog, 10, "[insertOrFind] race to reserve cell", uptr(table), idx);
+                            TURF_TRACE(Leapfrog, 10, "[insertOrFind] race to reserve cell", uptr(table), idx);
                             // Fall through to check if it's the same hash...
                         }
                     }
                     Hash x = (probeHash ^ hash);
                     // Check for same hash.
                     if (!x) {
-                        TURF_TRACE(LeapFrog, 11, "[insertOrFind] found outside probe chain", uptr(table), idx);
+                        TURF_TRACE(Leapfrog, 11, "[insertOrFind] found outside probe chain", uptr(table), idx);
                         return InsertResult_AlreadyFound;
                     }
                     // Check for same bucket.
                     if ((x & sizeMask) == 0) {
-                        TURF_TRACE(LeapFrog, 12, "[insertOrFind] found late-arriving cell in same bucket", uptr(table), idx);
+                        TURF_TRACE(Leapfrog, 12, "[insertOrFind] found late-arriving cell in same bucket", uptr(table), idx);
                         // Attempt to set the link on behalf of the late-arriving cell.
                         // This is usually redundant, but if we don't attempt to set the late-arriving cell's link here,
                         // there's no guarantee that our own link chain will be well-formed by the time this function returns.
@@ -292,7 +292,7 @@ struct LeapFrog {
                         probeDelta = prevLink->exchange(desiredDelta, turf::Relaxed);
                         TURF_ASSERT(probeDelta == 0 || probeDelta == desiredDelta);
                         if (probeDelta == 0)
-                            TURF_TRACE(LeapFrog, 13, "[insertOrFind] set link on behalf of late-arriving cell", uptr(table), idx);
+                            TURF_TRACE(Leapfrog, 13, "[insertOrFind] set link on behalf of late-arriving cell", uptr(table), idx);
 #else
                         prevLink->store(desiredDelta, turf::Relaxed);
 #endif
@@ -302,7 +302,7 @@ struct LeapFrog {
                 }
                 // Table is too full to insert.
                 overflowIdx = idx + 1;
-                TURF_TRACE(LeapFrog, 14, "[insertOrFind] overflow", uptr(table), overflowIdx);
+                TURF_TRACE(Leapfrog, 14, "[insertOrFind] overflow", uptr(table), overflowIdx);
                 return InsertResult_Overflow;
             }
         }
@@ -310,15 +310,15 @@ struct LeapFrog {
 
     static void beginTableMigrationToSize(Map& map, Table* table, ureg nextTableSize) {
         // Create new migration by DCLI.
-        TURF_TRACE(LeapFrog, 15, "[beginTableMigrationToSize] called", 0, 0);
+        TURF_TRACE(Leapfrog, 15, "[beginTableMigrationToSize] called", 0, 0);
         SimpleJobCoordinator::Job* job = table->jobCoordinator.loadConsume();
         if (job) {
-            TURF_TRACE(LeapFrog, 16, "[beginTableMigrationToSize] new migration already exists", 0, 0);
+            TURF_TRACE(Leapfrog, 16, "[beginTableMigrationToSize] new migration already exists", 0, 0);
         } else {
             turf::LockGuard<turf::Mutex> guard(table->mutex);
             job = table->jobCoordinator.loadConsume(); // Non-atomic would be sufficient, but that's OK.
             if (job) {
-                TURF_TRACE(LeapFrog, 17, "[beginTableMigrationToSize] new migration already exists (double-checked)", 0, 0);
+                TURF_TRACE(Leapfrog, 17, "[beginTableMigrationToSize] new migration already exists (double-checked)", 0, 0);
             } else {
                 // Create new migration.
                 TableMigration* migration = TableMigration::create(map, 1);
@@ -343,7 +343,7 @@ struct LeapFrog {
             Value value = cell->value.load(turf::Relaxed);
             if (value == Value(ValueTraits::Redirect)) {
                 // Another thread kicked off the jobCoordinator. The caller will participate upon return.
-                TURF_TRACE(LeapFrog, 18, "[beginTableMigration] redirected while determining table size", 0, 0);
+                TURF_TRACE(Leapfrog, 18, "[beginTableMigration] redirected while determining table size", 0, 0);
                 return;
             }
             if (value != Value(ValueTraits::NullValue))
@@ -363,10 +363,10 @@ struct LeapFrog {
         ureg nextTableSize = turf::util::max(InitialSize, turf::util::roundUpPowerOf2(ureg(estimatedInUse * 2)));
         beginTableMigrationToSize(map, table, nextTableSize);
     }
-}; // LeapFrog
+}; // Leapfrog
 
 template <class Map>
-bool LeapFrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
+bool Leapfrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx) {
     ureg srcSizeMask = srcTable->sizeMask;
     ureg endIdx = turf::util::min(startIdx + TableMigrationUnitSize, srcSizeMask + 1);
     // Iterate over source range.
@@ -384,12 +384,12 @@ bool LeapFrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx)
                     srcCell->value.compareExchange(Value(ValueTraits::NullValue), Value(ValueTraits::Redirect), turf::Relaxed);
                 if (srcValue == Value(ValueTraits::Redirect)) {
                     // srcValue is already marked Redirect due to previous incomplete migration.
-                    TURF_TRACE(LeapFrog, 19, "[migrateRange] empty cell already redirected", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Leapfrog, 19, "[migrateRange] empty cell already redirected", uptr(srcTable), srcIdx);
                     break;
                 }
                 if (srcValue == Value(ValueTraits::NullValue))
                     break; // Redirect has been placed. Break inner loop, continue outer loop.
-                TURF_TRACE(LeapFrog, 20, "[migrateRange] race to insert key", uptr(srcTable), srcIdx);
+                TURF_TRACE(Leapfrog, 20, "[migrateRange] race to insert key", uptr(srcTable), srcIdx);
                 // Otherwise, somebody just claimed the cell. Read srcHash again...
             } else {
                 // Check for deleted/uninitialized value.
@@ -398,15 +398,15 @@ bool LeapFrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx)
                     // Try to put a Redirect marker.
                     if (srcCell->value.compareExchangeStrong(srcValue, Value(ValueTraits::Redirect), turf::Relaxed))
                         break; // Redirect has been placed. Break inner loop, continue outer loop.
-                    TURF_TRACE(LeapFrog, 21, "[migrateRange] race to insert value", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Leapfrog, 21, "[migrateRange] race to insert value", uptr(srcTable), srcIdx);
                     if (srcValue == Value(ValueTraits::Redirect)) {
                         // FIXME: I don't think this will happen. Investigate & change to assert
-                        TURF_TRACE(LeapFrog, 22, "[migrateRange] race inserted Redirect", uptr(srcTable), srcIdx);
+                        TURF_TRACE(Leapfrog, 22, "[migrateRange] race inserted Redirect", uptr(srcTable), srcIdx);
                         break;
                     }
                 } else if (srcValue == Value(ValueTraits::Redirect)) {
                     // srcValue is already marked Redirect due to previous incomplete migration.
-                    TURF_TRACE(LeapFrog, 23, "[migrateRange] in-use cell already redirected", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Leapfrog, 23, "[migrateRange] in-use cell already redirected", uptr(srcTable), srcIdx);
                     break;
                 }
 
@@ -445,11 +445,11 @@ bool LeapFrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx)
                         // srcValue was non-NULL when we decided to migrate it, but it may have changed to NULL
                         // by a late-arriving erase.
                         if (srcValue == Value(ValueTraits::NullValue))
-                            TURF_TRACE(LeapFrog, 24, "[migrateRange] racing update was erase", uptr(srcTable), srcIdx);
+                            TURF_TRACE(Leapfrog, 24, "[migrateRange] racing update was erase", uptr(srcTable), srcIdx);
                         break;
                     }
                     // There was a late-arriving write (or erase) to the src. Migrate the new value and try again.
-                    TURF_TRACE(LeapFrog, 25, "[migrateRange] race to update migrated value", uptr(srcTable), srcIdx);
+                    TURF_TRACE(Leapfrog, 25, "[migrateRange] race to update migrated value", uptr(srcTable), srcIdx);
                     srcValue = doubleCheckedSrcValue;
                 }
                 // Cell successfully migrated. Proceed to next source cell.
@@ -462,13 +462,13 @@ bool LeapFrog<Map>::TableMigration::migrateRange(Table* srcTable, ureg startIdx)
 }
 
 template <class Map>
-void LeapFrog<Map>::TableMigration::run() {
+void Leapfrog<Map>::TableMigration::run() {
     // Conditionally increment the shared # of workers.
     ureg probeStatus = m_workerStatus.load(turf::Relaxed);
     do {
         if (probeStatus & 1) {
             // End flag is already set, so do nothing.
-            TURF_TRACE(LeapFrog, 26, "[TableMigration::run] already ended", uptr(this), 0);
+            TURF_TRACE(Leapfrog, 26, "[TableMigration::run] already ended", uptr(this), 0);
             return;
         }
     } while (!m_workerStatus.compareExchangeWeak(probeStatus, probeStatus + 2, turf::Relaxed, turf::Relaxed));
@@ -481,7 +481,7 @@ void LeapFrog<Map>::TableMigration::run() {
         // Loop over all migration units in this source table.
         for (;;) {
             if (m_workerStatus.load(turf::Relaxed) & 1) {
-                TURF_TRACE(LeapFrog, 27, "[TableMigration::run] detected end flag set", uptr(this), 0);
+                TURF_TRACE(Leapfrog, 27, "[TableMigration::run] detected end flag set", uptr(this), 0);
                 goto endMigration;
             }
             ureg startIdx = source.sourceIndex.fetchAdd(TableMigrationUnitSize, turf::Relaxed);
@@ -494,14 +494,14 @@ void LeapFrog<Map>::TableMigration::run() {
                 // No other thread can declare the migration successful at this point, because *this* unit will never complete,
                 // hence m_unitsRemaining won't reach zero.
                 // However, multiple threads can independently detect a failed migration at the same time.
-                TURF_TRACE(LeapFrog, 28, "[TableMigration::run] destination overflow", uptr(source.table), uptr(startIdx));
+                TURF_TRACE(Leapfrog, 28, "[TableMigration::run] destination overflow", uptr(source.table), uptr(startIdx));
                 // The reason we store overflowed in a shared variable is because we can must flush all the worker threads before
                 // we can safely deal with the overflow. Therefore, the thread that detects the failure is often different from
                 // the thread
                 // that deals with it.
                 bool oldOverflowed = m_overflowed.exchange(overflowed, turf::Relaxed);
                 if (oldOverflowed)
-                    TURF_TRACE(LeapFrog, 29, "[TableMigration::run] race to set m_overflowed", uptr(overflowed),
+                    TURF_TRACE(Leapfrog, 29, "[TableMigration::run] race to set m_overflowed", uptr(overflowed),
                                uptr(oldOverflowed));
                 m_workerStatus.fetchOr(1, turf::Relaxed);
                 goto endMigration;
@@ -516,7 +516,7 @@ void LeapFrog<Map>::TableMigration::run() {
             }
         }
     }
-    TURF_TRACE(LeapFrog, 30, "[TableMigration::run] out of migration units", uptr(this), 0);
+    TURF_TRACE(Leapfrog, 30, "[TableMigration::run] out of migration units", uptr(this), 0);
 
 endMigration:
     // Decrement the shared # of workers.
@@ -524,7 +524,7 @@ endMigration:
         2, turf::AcquireRelease); // AcquireRelease makes all previous writes visible to the last worker thread.
     if (probeStatus >= 4) {
         // There are other workers remaining. Return here so that only the very last worker will proceed.
-        TURF_TRACE(LeapFrog, 31, "[TableMigration::run] not the last worker", uptr(this), uptr(probeStatus));
+        TURF_TRACE(Leapfrog, 31, "[TableMigration::run] not the last worker", uptr(this), uptr(probeStatus));
         return;
     }
 
@@ -543,7 +543,7 @@ endMigration:
         turf::LockGuard<turf::Mutex> guard(origTable->mutex);
         SimpleJobCoordinator::Job* checkedJob = origTable->jobCoordinator.loadConsume();
         if (checkedJob != this) {
-            TURF_TRACE(LeapFrog, 32, "[TableMigration::run] a new TableMigration was already started", uptr(origTable),
+            TURF_TRACE(Leapfrog, 32, "[TableMigration::run] a new TableMigration was already started", uptr(origTable),
                        uptr(checkedJob));
         } else {
             TableMigration* migration = TableMigration::create(m_map, m_numSources + 1);

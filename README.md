@@ -2,7 +2,7 @@ Junction is a library of concurrent data structures in C++. It contains several 
 
     junction::ConcurrentMap_Crude
     junction::ConcurrentMap_Linear
-    junction::ConcurrentMap_LeapFrog
+    junction::ConcurrentMap_Leapfrog
     junction::ConcurrentMap_Grampa
 
 [CMake](https://cmake.org/) and [Turf](https://github.com/preshing/turf) are required. See the blog post [New Concurrent Hash Maps for C++](http://preshing.com/20160201/new-concurrent-hash-maps-for-cpp/) for more information.
@@ -103,7 +103,7 @@ A Junction map is a lot like a big array of `std::atomic<>` variables, where the
 
 * All of a Junction map's member functions, together with its `Mutator` member functions, are atomic with respect to each other, so you can safely call them from any thread without mutual exclusion.
 * If an `set` [happens before](http://preshing.com/20130702/the-happens-before-relation/) a `get` with the same key, the `get` will return the value set, except if another operation changes the value in between. Any [synchronizing operation](http://preshing.com/20130823/the-synchronizes-with-relation/) will establish this relationship.
-* For Linear, LeapFrog and Grampa maps, `set` is a [release](http://preshing.com/20120913/acquire-and-release-semantics/) operation and `get` is a [consume](http://preshing.com/20140709/the-purpose-of-memory_order_consume-in-cpp11/) operation, so you can safely pass non-atomic information between threads using a pointer. For Crude maps, all operations are relaxed.
+* For Linear, Leapfrog and Grampa maps, `set` is a [release](http://preshing.com/20120913/acquire-and-release-semantics/) operation and `get` is a [consume](http://preshing.com/20140709/the-purpose-of-memory_order_consume-in-cpp11/) operation, so you can safely pass non-atomic information between threads using a pointer. For Crude maps, all operations are relaxed.
 * In the current version, you must not set while concurrently using an `Iterator`.
 
 ## Feedback
