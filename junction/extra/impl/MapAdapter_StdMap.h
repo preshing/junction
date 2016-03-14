@@ -52,7 +52,7 @@ public:
         Map(ureg) {
         }
 
-        void set(u32 key, void* value) {
+        void assign(u32 key, void* value) {
             std::lock_guard<std::mutex> guard(m_mutex);
             m_map[key] = value;
         }

@@ -126,7 +126,7 @@ public:
         MapAdapter::Map* map = m_shared.map;
         for (ureg i = 0; i < m_shared.numKeysPerThread; i++) {
             u32 key = m_addIndex * Prime;
-            map->set(key, (void*) (key & ~uptr(3)));
+            map->assign(key, (void*) (key & ~uptr(3)));
             if (++m_addIndex == m_rangeHi)
                 m_addIndex = m_rangeLo;
         }
@@ -155,7 +155,7 @@ public:
                 break;
             u32 key = m_addIndex * Prime;
             if (key >= 2) {
-                map->set(key, (void*) uptr(key));
+                map->assign(key, (void*) uptr(key));
                 stats.mapOpsDone++;
             }
             if (++m_addIndex == m_rangeHi)

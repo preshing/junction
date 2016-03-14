@@ -52,9 +52,9 @@ public:
         Map(ureg capacity) : m_map(capacity) {
         }
 
-        void set(u32 key, void* value) {
+        void assign(u32 key, void* value) {
             turf::ExclusiveLockGuard<turf::RWLock> guard(m_rwLock);
-            m_map.set(key, value);
+            m_map.assign(key, value);
         }
 
         void* get(u32 key) {

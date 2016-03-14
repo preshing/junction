@@ -49,7 +49,7 @@ public:
         delete[] m_cells;
     }
 
-    void set(Key key, Value value) {
+    void assign(Key key, Value value) {
         TURF_ASSERT(key != KeyTraits::NullKey);
         TURF_ASSERT(value != Value(ValueTraits::NullValue));
 

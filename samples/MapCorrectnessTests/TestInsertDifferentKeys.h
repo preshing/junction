@@ -36,7 +36,7 @@ public:
             u32 key = index * m_relativePrime;
             key = key ^ (key >> 16);
             if (key >= 2) { // Don't insert 0 or 1
-                m_map->set(key, (void*) uptr(key));
+                m_map->assign(key, (void*) uptr(key));
                 keysRemaining--;
             }
             index++;

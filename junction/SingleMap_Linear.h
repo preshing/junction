@@ -189,7 +189,7 @@ public:
         return iter.isValid() ? iter.getValue() : NULL;
     }
 
-    Value set(const Key& key, Value desired) {
+    Value assign(const Key& key, Value desired) {
         Mutator iter(*this, key);
         return iter.exchangeValue(desired);
     }

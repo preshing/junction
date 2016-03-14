@@ -45,7 +45,7 @@ public:
         Map(ureg) {
         }
 
-        void set(u32, void*) {
+        void assign(u32, void*) {
         }
 
         void* get(u32) {

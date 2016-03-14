@@ -79,7 +79,7 @@ public:
             u32 key = thread.insertIndex * m_relativePrime;
             key = key ^ (key >> 16);
             if (key >= 2) {
-                m_map.set(key, (void*) uptr(key));
+                m_map.assign(key, (void*) uptr(key));
             }
             if (++thread.insertIndex >= thread.rangeHi)
                 thread.insertIndex = thread.rangeLo;
@@ -96,7 +96,7 @@ public:
                     u32 key = thread.insertIndex * m_relativePrime;
                     key = key ^ (key >> 16);
                     if (key >= 2) {
-                        m_map.set(key, (void*) uptr(key));
+                        m_map.assign(key, (void*) uptr(key));
                     }
                     if (++thread.insertIndex >= thread.rangeHi)
                         thread.insertIndex = thread.rangeLo;

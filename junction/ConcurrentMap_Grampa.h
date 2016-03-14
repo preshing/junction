@@ -398,7 +398,7 @@ public:
             }
         }
 
-        void setValue(Value desired) {
+        void assignValue(Value desired) {
             exchangeValue(desired);
         }
 
@@ -478,7 +478,7 @@ public:
         }
     }
 
-    Value set(Key key, Value desired) {
+    Value assign(Key key, Value desired) {
         Mutator iter(*this, key);
         return iter.exchangeValue(desired);
     }
