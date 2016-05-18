@@ -19,6 +19,7 @@
 #include <junction/extra/MapAdapter.h>
 #include <algorithm>
 #include <vector>
+#include <stdio.h>
 
 using namespace turf::intTypes;
 typedef junction::extra::MapAdapter MapAdapter;
@@ -49,7 +50,7 @@ struct SharedState {
 
 class ThreadState {
 public:
-    SharedState& m_shared;
+    SharedState* m_shared;
     MapAdapter::ThreadContext m_threadCtx;
     ureg m_threadIndex;
     u32 m_rangeLo;
@@ -80,8 +81,8 @@ public:
 
     Stats m_stats;
 
-    ThreadState(SharedState& shared, ureg threadIndex, u32 rangeLo, u32 rangeHi)
-        : m_shared(shared), m_threadCtx(shared.adapter, threadIndex) {
+    ThreadState(SharedState* shared, ureg threadIndex, u32 rangeLo, u32 rangeHi)
+        : m_shared(shared), m_threadCtx(shared->adapter, threadIndex) {
         m_threadIndex = threadIndex;
         m_rangeLo = rangeLo;
         m_rangeHi = rangeHi;
@@ -99,8 +100,8 @@ public:
 
     void initialPopulate() {
         TURF_ASSERT(m_addIndex == m_removeIndex);
-        MapAdapter::Map* map = m_shared.map;
-        for (ureg i = 0; i < m_shared.numKeysPerThread; i++) {
+        MapAdapter::Map* map = m_shared->map;
+        for (ureg i = 0; i < m_shared->numKeysPerThread; i++) {
             u32 key = m_addIndex * Prime;
             if (key >= 2)
                 map->assign(key, (void*) uptr(key));
@@ -110,23 +111,23 @@ public:
     }
 
     void run() {
-        MapAdapter::Map* map = m_shared.map;
+        MapAdapter::Map* map = m_shared->map;
         turf::CPUTimer::Converter converter;
         Stats stats;
         ureg lookupIndex = m_rangeLo;
-        ureg remaining = m_shared.itersPerChunk;
+        ureg remaining = m_shared->itersPerChunk;
         if (m_threadIndex == 0)
-            m_shared.spinKicker.kick(m_shared.numThreads - 1);
+            m_shared->spinKicker.kick(m_shared->numThreads - 1);
         else {
             remaining = ~u32(0);
-            m_shared.spinKicker.waitForKick();
+            m_shared->spinKicker.waitForKick();
         }
 
         // ---------
         turf::CPUTimer::Point start = turf::CPUTimer::get();
         for (; remaining > 0; remaining--) {
             // Add
-            if (m_shared.doneFlag.load(turf::Relaxed))
+            if (m_shared->doneFlag.load(turf::Relaxed))
                 break;
             u32 key = m_addIndex * Prime;
             if (key >= 2) {
@@ -139,8 +140,8 @@ public:
             // Lookup
             if (s32(lookupIndex - m_removeIndex) < 0)
                 lookupIndex = m_removeIndex;
-            for (ureg l = 0; l < m_shared.readsPerWrite; l++) {
-                if (m_shared.doneFlag.load(turf::Relaxed))
+            for (ureg l = 0; l < m_shared->readsPerWrite; l++) {
+                if (m_shared->doneFlag.load(turf::Relaxed))
                     break;
                 key = lookupIndex * Prime;
                 if (key >= 2) {
@@ -155,7 +156,7 @@ public:
             }
 
             // Remove
-            if (m_shared.doneFlag.load(turf::Relaxed))
+            if (m_shared->doneFlag.load(turf::Relaxed))
                 break;
             key = m_removeIndex * Prime;
             if (key >= 2) {
@@ -168,8 +169,8 @@ public:
             // Lookup
             if (s32(lookupIndex - m_removeIndex) < 0)
                 lookupIndex = m_removeIndex;
-            for (ureg l = 0; l < m_shared.readsPerWrite; l++) {
-                if (m_shared.doneFlag.load(turf::Relaxed))
+            for (ureg l = 0; l < m_shared->readsPerWrite; l++) {
+                if (m_shared->doneFlag.load(turf::Relaxed))
                     break;
                 key = lookupIndex * Prime;
                 if (key >= 2) {
@@ -184,7 +185,7 @@ public:
             }
         }
         if (m_threadIndex == 0)
-            m_shared.doneFlag.store(1, turf::Relaxed);
+            m_shared->doneFlag.store(1, turf::Relaxed);
         m_threadCtx.update();
         turf::CPUTimer::Point end = turf::CPUTimer::get();
         // ---------
@@ -221,7 +222,7 @@ int main(int argc, const char** argv) {
     for (ureg t = 0; t < numCores; t++) {
         u32 rangeLo = 0xffffffffu / numCores * t + 1;
         u32 rangeHi = 0xffffffffu / numCores * (t + 1) + 1;
-        threads.emplace_back(shared, t, rangeLo, rangeHi);
+        threads.push_back(ThreadState(&shared, t, rangeLo, rangeHi));
     }
     dispatcher.kickOne(0, &ThreadState::registerThread, threads[0]);
 
@@ -234,7 +235,7 @@ int main(int argc, const char** argv) {
         }
 
         printf("{\n");
-        printf("'mapType': '%s',\n", MapAdapter::MapName);
+        printf("'mapType': '%s',\n", MapAdapter::getMapName());
         printf("'population': %d,\n", (int) (numCores * NumKeysPerThread));
         printf("'readsPerWrite': %d,\n", (int) readsPerWrite);
         printf("'itersPerChunk': %d,\n", (int) itersPerChunk);

@@ -27,7 +27,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Tervel HashMap";
+    static TURF_CONSTEXPR const char* getMapName() { return "Tervel HashMap"; }
 
     tervel::Tervel m_tervel;
 

@@ -26,7 +26,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Intel TBB concurrent_hash_map";
+    static TURF_CONSTEXPR const char* getMapName() { return "Intel TBB concurrent_hash_map"; }
 
     MapAdapter(ureg) {
     }

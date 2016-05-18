@@ -23,7 +23,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Single + RWLock";
+    static TURF_CONSTEXPR const char* getMapName() { return "Single + RWLock"; }
 
     MapAdapter(ureg) {
     }

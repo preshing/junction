@@ -20,7 +20,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Null";
+    static TURF_CONSTEXPR const char* getMapName() { return "Null"; }
 
     MapAdapter(ureg) {
     }

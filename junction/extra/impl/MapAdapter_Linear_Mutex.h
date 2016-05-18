@@ -23,7 +23,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Single + Mutex";
+    static TURF_CONSTEXPR const char* getMapName() { return "Single + Mutex"; }
 
     MapAdapter(ureg) {
     }

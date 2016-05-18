@@ -26,7 +26,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "libcuckoo cuckoohash_map";
+    static TURF_CONSTEXPR const char* getMapName() { return "libcuckoo cuckoohash_map"; }
 
     MapAdapter(ureg) {
     }

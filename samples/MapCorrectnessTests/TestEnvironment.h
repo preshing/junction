@@ -30,7 +30,7 @@ struct TestEnvironment {
     TestEnvironment() : numThreads(dispatcher.getNumPhysicalCores()), adapter(numThreads) {
         TURF_ASSERT(numThreads > 0);
         for (ureg t = 0; t < numThreads; t++)
-            threads.emplace_back(adapter, t);
+            threads.push_back(MapAdapter::ThreadContext(adapter, t));
         dispatcher.kickMulti(&MapAdapter::ThreadContext::registerThread, &threads[0], threads.size());
     }
 

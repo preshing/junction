@@ -30,7 +30,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "CDS CuckooMap";
+    static TURF_CONSTEXPR const char* getMapName() { return "CDS CuckooMap"; }
 
     cds::gc::HP* m_hpGC;
 

@@ -14,7 +14,6 @@
 #include <turf/Thread.h>
 #include <turf/Mutex.h>
 #include <turf/RaceDetector.h>
-#include <unordered_map>
 #include <vector>
 
 namespace junction {

@@ -26,7 +26,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Folly AtomicHashMap";
+    static TURF_CONSTEXPR const char* getMapName() { return "Folly AtomicHashMap"; }
 
     MapAdapter(ureg) {
     }

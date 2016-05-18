@@ -31,7 +31,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "nbds hashtable_t";
+    static TURF_CONSTEXPR const char* getMapName() { return "nbds hashtable_t"; }
 
     MapAdapter(ureg) {
     }

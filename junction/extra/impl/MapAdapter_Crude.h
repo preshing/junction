@@ -22,7 +22,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Junction Crude map";
+    static TURF_CONSTEXPR const char* getMapName() { return "Junction Crude map"; }
 
     MapAdapter(ureg) {
     }

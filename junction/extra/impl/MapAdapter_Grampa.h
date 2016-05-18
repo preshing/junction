@@ -23,7 +23,7 @@ namespace extra {
 
 class MapAdapter {
 public:
-    static TURF_CONSTEXPR const char* MapName = "Junction Grampa map";
+    static TURF_CONSTEXPR const char* getMapName() { return "Junction Grampa map"; }
 
     MapAdapter(ureg) {
     }
