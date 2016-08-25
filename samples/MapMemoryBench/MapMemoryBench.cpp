@@ -44,7 +44,7 @@ int main() {
         for (ureg target = population + StepSize; population < target; population++) {
             u32 key = u32(population + 1) * Prime;
             if (key >= 2) {
-                map->insert(key, (void*) uptr(key));
+                map->assign(key, (void*) uptr(key));
                 population++;
                 threadCtx.update();
                 ureg inUseBytes = TURF_HEAP.getInUseBytes();
