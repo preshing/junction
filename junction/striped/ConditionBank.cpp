@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------
   Junction: Concurrent data structures in C++
-  Copyright (c) 2016 Jeff Preshing
+  Copyright (c) 2016-2017 Jeff Preshing
 
   Distributed under the Simplified BSD License.
   Original location: https://github.com/preshing/junction
@@ -19,6 +19,13 @@ namespace junction {
 namespace striped {
 
 ConditionBank DefaultConditionBank;
+
+ConditionBank::~ConditionBank() {
+    m_initSpinLock.lock();
+    ConditionPair* pairs = m_pairs.exchange(nullptr, turf::ConsumeRelease);
+    delete [] pairs;
+    m_initSpinLock.unlock();
+}
 
 ConditionPair* ConditionBank::initialize() {
     m_initSpinLock.lock();

@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------
   Junction: Concurrent data structures in C++
-  Copyright (c) 2016 Jeff Preshing
+  Copyright (c) 2016-2017 Jeff Preshing
 
   Distributed under the Simplified BSD License.
   Original location: https://github.com/preshing/junction
@@ -36,6 +36,8 @@ private:
     ConditionPair* initialize();
 
 public:
+    ~ConditionBank();
+
     ConditionPair& get(void* ptr) {
         ConditionPair* pairs = m_pairs.load(turf::Consume);
         if (!pairs) {
