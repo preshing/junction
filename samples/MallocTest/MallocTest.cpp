@@ -1,6 +1,6 @@
 /*------------------------------------------------------------------------
   Junction: Concurrent data structures in C++
-  Copyright (c) 2016 Jeff Preshing
+  Copyright (c) 2016-2017 Jeff Preshing
 
   Distributed under the Simplified BSD License.
   Original location: https://github.com/preshing/junction
@@ -22,6 +22,8 @@ int main() {
     junction::extra::MapAdapter::ThreadContext context(adapter, 0);
     junction::extra::MapAdapter::Map map(65536);
 
+    context.registerThread();
+
     ureg population = 0;
     for (ureg i = 0; i < 100; i++) {
 #if TURF_USE_DLMALLOC && TURF_DLMALLOC_FAST_STATS
@@ -30,6 +32,9 @@ int main() {
         for (; population < i * 5000; population++)
             map.assign(population + 1, (void*) ((population << 2) | 3));
     }
+
+    context.update();
+    context.unregisterThread();
 
     return 0;
 }
