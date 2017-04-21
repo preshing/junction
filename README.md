@@ -99,7 +99,7 @@ The `JUNCTION_USERCONFIG` variable works in a similar way. As an example, take a
 
 ## Rules and Behavior
 
-Currently, Junction maps only work with integer or pointer-sized keys. The hash function must be invertible, so that every key has a unique hash. Otherwise, a Junction map is a lot like a big array of `std::atomic<>` variables, where the key is an index into the array. More precisely:
+Currently, Junction maps only work with keys and values that are pointers or pointer-sized integers. The hash function must be invertible, so that every key has a unique hash. Otherwise, a Junction map is a lot like a big array of `std::atomic<>` variables, where the key is an index into the array. More precisely:
 
 * All of a Junction map's member functions, together with its `Mutator` member functions, are atomic with respect to each other, so you can safely call them from any thread without mutual exclusion.
 * If an `assign` [happens before](http://preshing.com/20130702/the-happens-before-relation/) a `get` with the same key, the `get` will return the value it inserted, except if another operation changes the value in between. Any [synchronizing operation](http://preshing.com/20130823/the-synchronizes-with-relation/) will establish this relationship.
