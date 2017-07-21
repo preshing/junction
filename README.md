@@ -81,7 +81,7 @@ This will create the following file structure:
 
 ## Configuration
 
-When you first run CMake on Junction, Turf will detect the capabilities of your compiler and write the results to a file in the build tree named `include/turf_config.h`. Similarly, Junction will write `include/junction_config.h` to the build tree. You can modify the contents of those files by setting variables when CMake runs. This can be done by passing additional options to `cmake`, or by using an interactive GUI such as `cmake-gui` or `ccmake`.
+When you first run CMake on Junction, Turf will detect the capabilities of your compiler and write the results to a file in the build tree named `turf/include/turf_config.h`. Similarly, Junction will write `include/junction_config.h` to the build tree. You can modify the contents of those files by setting variables when CMake runs. This can be done by passing additional options to `cmake`, or by using an interactive GUI such as `cmake-gui` or `ccmake`.
 
 For example, to configure Turf to use the C++11 standard library, you can set the `TURF_PREFER_CPP11` variable on the command line:
 
