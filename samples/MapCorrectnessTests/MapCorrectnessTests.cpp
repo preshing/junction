@@ -15,6 +15,7 @@
 #include "TestInsertSameKeys.h"
 #include "TestInsertDifferentKeys.h"
 #include "TestChurn.h"
+#include "TestDoubleAssign.h"
 #include <turf/extra/Options.h>
 #include <junction/details/Grampa.h> // for GrampaStats
 
@@ -26,11 +27,13 @@ int main(int argc, const char** argv) {
     TestInsertSameKeys testInsertSameKeys(env);
     TestInsertDifferentKeys testInsertDifferentKeys(env);
     TestChurn testChurn(env);
+    TestDoubleAssign testDoubleAssign(env);
     for (;;) {
         for (ureg c = 0; c < IterationsPerLog; c++) {
             testInsertSameKeys.run();
             testInsertDifferentKeys.run();
             testChurn.run();
+            testDoubleAssign.run();
         }
         turf::Trace::Instance.dumpStats();
 
