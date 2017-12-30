@@ -101,6 +101,8 @@ The `JUNCTION_USERCONFIG` variable works in a similar way. As an example, take a
 
 Currently, Junction maps only work with keys and values that are pointers or pointer-sized integers. The hash function must be invertible, so that every key has a unique hash. Out of all possible keys, a _null_ key must be reserved, and out of all possible values, _null_ and _redirect_ values must be reserved. The defaults are 0 and 1. You can override those defaults by passing custom `KeyTraits` and `ValueTraits` parameters to the template.
 
+Every thread that manipulates a Junction map must periodically call `junction::DefaultQSBR.update`, as mentioned [in the blog post](http://preshing.com/20160201/new-concurrent-hash-maps-for-cpp/). If not, the application will leak memory.
+
 Otherwise, a Junction map is a lot like a big array of `std::atomic<>` variables, where the key is an index into the array. More precisely:
 
 * All of a Junction map's member functions, together with its `Mutator` member functions, are atomic with respect to each other, so you can safely call them from any thread without mutual exclusion.
