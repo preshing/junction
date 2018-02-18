@@ -58,7 +58,7 @@ public:
 
     void run() {
         m_map = new MapAdapter::Map(MapAdapter::getInitialCapacity(KeysToInsert));
-        m_index = 2;
+        m_index.storeNonatomic(2);
         m_env.dispatcher.kick(&TestDoubleAssign::doubleAssignKeys, *this);
         checkMapContents();
         delete m_map;

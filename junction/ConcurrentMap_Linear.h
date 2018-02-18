@@ -211,7 +211,7 @@ public:
                 TURF_ASSERT(m_cell); // m_value is non-NullValue, therefore cell must have been found or inserted.
                 if (m_cell->value.compareExchangeStrong(m_value, Value(ValueTraits::NullValue), turf::Consume)) {
                     // Exchange was successful and a non-NULL value was erased and returned by reference in m_value.
-                    TURF_ASSERT(m_value != ValueTraits::NullValue); // Implied by the test at the start of the loop.
+                    TURF_ASSERT(m_value != Value(ValueTraits::NullValue)); // Implied by the test at the start of the loop.
                     Value result = m_value;
                     m_value = Value(ValueTraits::NullValue); // Leave the mutator in a valid state
                     return result;
