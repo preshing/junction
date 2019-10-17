@@ -17,7 +17,7 @@
 
 using namespace turf::intTypes;
 
-int main() {
+void main() {
     junction::extra::MapAdapter adapter(1);
     junction::extra::MapAdapter::ThreadContext context(adapter, 0);
     junction::extra::MapAdapter::Map map(65536);
@@ -35,6 +35,4 @@ int main() {
 
     context.update();
     context.unregisterThread();
-
-    return 0;
 }
