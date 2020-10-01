@@ -110,6 +110,6 @@ Otherwise, a Junction map is a lot like a big array of `std::atomic<>` variables
 * For Linear, Leapfrog and Grampa maps, `assign` is a [release](http://preshing.com/20120913/acquire-and-release-semantics/) operation and `get` is a [consume](http://preshing.com/20140709/the-purpose-of-memory_order_consume-in-cpp11/) operation, so you can safely pass non-atomic information between threads using a pointer. For Crude maps, all operations are relaxed.
 * In the current version, you must not `assign` while concurrently using an `Iterator`.
 
-## Feedback
+## Feedbacks
 
 If you have any feedback on improving these steps, feel free to [open an issue](https://github.com/preshing/junction/issues) on GitHub, or send a direct message using the [contact form](http://preshing.com/contact/) on my blog.
